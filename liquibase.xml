@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+    <!--
+        See http://www.liquibase.org/manual/home#available_database_refactorings
+        for a list of supported elements and attributes
+    -->
+    <changeSet id="server-data-transfer-server-2020-08-29" author="BOGUI SERGE">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="server_transfer_server"/>
+            </not>
+        </preConditions>
+        <createTable tableName="server_transfer_server">
+            <column name="server_id" type="int" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="server_name">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="url" type="varchar(65)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="server_username" type="varchar(65)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="server_user_password" type="varchar(65)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="server_connected" type="tinyint(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uuid" type="varchar(38)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+        </createTable>
+
+        <createTable tableName="server_transfer_data_transfer">
+            <column name="transfer_id" type="int" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="server_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="blob"/>
+            <column name="transfer_date" type="datetime"/>
+            <column name="transfer_feedback" type="varchar(255)"/>
+            <column name="status" type="varchar(20)"/>
+            <column name="uuid" type="varchar(38)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="server_transfer_data_transfer" baseColumnNames="server_id"
+                                 constraintName="server_transfer_data_transfer_server_fk"
+                                 referencedTableName="server_transfer_server"
+                                 referencedColumnNames="server_id"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -13,11 +13,17 @@
  */
 package org.openmrs.module.serverDataTransfer.api.db;
 
+import org.openmrs.Patient;
 import org.openmrs.module.serverDataTransfer.Server;
 import org.openmrs.module.serverDataTransfer.ServerDataTransfer;
 import org.openmrs.module.serverDataTransfer.api.ServerDataTransferService;
+import org.openmrs.module.serverDataTransfer.utils.DataTransferModelUUID;
+import org.openmrs.module.serverDataTransfer.utils.DataTransferResourceModel;
+import org.openmrs.module.serverDataTransfer.utils.resourcesResult.EncounterResult;
+import org.openmrs.module.serverDataTransfer.utils.resourcesResult.PatientResult;
 import org.openmrs.module.webservices.rest.web.v1_0.resource.openmrs1_8.ConceptResource1_8;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -29,7 +35,9 @@ public interface ServerDataTransferDAO {
 	/*
 	 * Add DAO methods here
 	 */
-	void prepareDataToTransfer(Date lastTransferDate);
+	void prepareDataToTransfer(Integer serverId);
+
+	void prepareData(Server server);
 
 	Server createServer(Server server);
 	Server updateServer(Server server);
@@ -40,7 +48,27 @@ public interface ServerDataTransferDAO {
 	ServerDataTransfer createServerData(ServerDataTransfer data);
 	ServerDataTransfer updateServerData(ServerDataTransfer data);
 	List<ServerDataTransfer> getAllServerData();
+	List<ServerDataTransfer> getAllServerDataByServer(Integer serverId);
+	List<ServerDataTransfer> getAllServerDataNoTransferByServer(Integer serverId);
 	ServerDataTransfer getOneServerData(Integer serverDataId);
 
-	boolean transferData();
+    boolean transferData(Server server, String endPoint, ServerDataTransfer data) throws IOException;
+
+    String postDataToServer(Server server, String endPoint, DataTransferResourceModel data);
+
+	String postData(String url, String username, String password, String resource, String data);
+
+	String deleteData(String url, String username, String password, String resource, String resourceUuid);
+
+	public boolean testServerDetails(String url, String user, String pass);
+
+	List<Patient> getPatientWithNoAge();
+	List<Patient> getPatientWithNoName();
+	List<Patient> getPatientDeathWithNoCauseOfDeath();
+	List<Patient> getPatentWithNonUniqueIdentifier();
+	List<Patient> getPatientWithoutGender();
+
+	List<PatientResult> findPatientOnServer(String identifier, Server server) throws IOException;
+	EncounterResult getLatestAdmission(String patientUuid, Server server) throws IOException;
+	EncounterResult getLatestOutFromCare(String patientUuid, Server server) throws IOException;
 }

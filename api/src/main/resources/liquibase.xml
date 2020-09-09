@@ -18,6 +18,9 @@
             <column name="server_id" type="int" autoIncrement="true">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
+            <column name="server_name" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
             <column name="url" type="varchar(65)">
                 <constraints nullable="false" unique="true"/>
             </column>
@@ -43,29 +46,17 @@
             <column name="server_id" type="int">
                 <constraints nullable="false"/>
             </column>
-            <column name="transfer_date" type="datetime">
+            <column name="date_created" type="datetime">
                 <constraints nullable="false"/>
             </column>
-            <column name="content" type="longtext">
-                <constraints nullable="false"/>
-            </column>
+            <column name="content" type="mediumblob"/>
+            <column name="transfer_date" type="datetime"/>
             <column name="transfer_feedback" type="varchar(255)"/>
             <column name="status" type="varchar(20)"/>
             <column name="uuid" type="varchar(38)">
                 <constraints nullable="false" unique="true"/>
             </column>
         </createTable>
-<!--        <addForeignKeyConstraint constraintName="server_transfer_data_transfer_server"-->
-<!--                                 baseTableName="server_transfer_data_transfer" baseColumnNames="server_id"-->
-<!--                                 referencedTableName="server_transfer_server" referencedColumnNames="server_id"/>-->
-
-    </changeSet>
-
-    <changeSet id="server-data-transfer-foreign-key" author="BOGUI SERGE">
-        <createIndex tableName="server_transfer_data_transfer" indexName="server_id_index">
-            <column name="server_id"/>
-        </createIndex>
-
         <addForeignKeyConstraint baseTableName="server_transfer_data_transfer" baseColumnNames="server_id"
                                  constraintName="server_transfer_data_transfer_server_fk"
                                  referencedTableName="server_transfer_server"

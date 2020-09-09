@@ -33,8 +33,17 @@
 <!--	<mappingFiles></mappingFiles>-->
 
 	<packagesWithMappedClasses>
-		org.openmrs.module.${project.artifactId}
+		org.openmrs.module.serverDataTransfer
 	</packagesWithMappedClasses>
+
+	<!-- Global Properties -->
+	<globalProperty>
+		<property>serverDataTransfer.transferResumeDataConcepts</property>
+		<defaultValue>164550,160554,163623,164523,159599,162240</defaultValue>
+		<description>Insert here the concept list (comma separated) of data to show in patient transferred resume </description>
+	</globalProperty>
+
+
 
 	<!-- Internationalization -->
 	<!-- All message codes should start with ${project.parent.artifactId}. -->

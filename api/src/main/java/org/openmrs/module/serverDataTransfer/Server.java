@@ -4,11 +4,11 @@ import org.openmrs.BaseOpenmrsObject;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
+import java.util.UUID;
 
-@Table(name = "server_transfer_server")
 @Entity
-public class Server extends BaseOpenmrsObject implements Serializable {
+@Table(name = "server_transfer_server")
+public class Server implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -16,6 +16,9 @@ public class Server extends BaseOpenmrsObject implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "server_id")
     private Integer serverId;
+
+    @Column(name = "server_name", nullable = false, unique = true)
+    private String serverName;
 
     @Column(name = "url", nullable = false, unique = true)
     private String serverUrl;
@@ -26,18 +29,24 @@ public class Server extends BaseOpenmrsObject implements Serializable {
     @Column(name = "server_user_password", nullable = false)
     private String password;
 
+    @Column(name = "server_connected")
+    private boolean connected;
+
+    @Column(name = "uuid", length = 38, unique = true, nullable = false)
+    private String uuid = UUID.randomUUID().toString();
+
     public Server() {
     }
-
-    @Override
-    public Integer getId() {
-        return getServerId();
-    }
-
-    @Override
-    public void setId(Integer id) {
-        this.setServerId(id);
-    }
+//
+//    @Override
+//    public Integer getId() {
+//        return getServerId();
+//    }
+//
+//    @Override
+//    public void setId(Integer id) {
+//        this.setServerId(id);
+//    }
 
     public Integer getServerId() {
         return serverId;
@@ -47,15 +56,28 @@ public class Server extends BaseOpenmrsObject implements Serializable {
         this.serverId = serverId;
     }
 
-    @Override
-    @Column(name = "uuid", nullable = false, unique = true)
-    public String getUuid() {
-        return super.getUuid();
+    public String getServerName() {
+        return serverName;
     }
 
-    @Override
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
+
+    public boolean isConnected() {
+        return connected;
+    }
+
+    public void setConnected(boolean connected) {
+        this.connected = connected;
+    }
+
+    public String getUuid() {
+        return this.uuid;
+    }
+
     public void setUuid(String uuid) {
-        super.setUuid(uuid);
+        this.uuid = uuid;
     }
 
     public String getServerUrl() {

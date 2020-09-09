@@ -15,9 +15,11 @@ package org.openmrs.module.serverDataTransfer;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.UUID;
 
 import org.openmrs.BaseOpenmrsObject;
 import org.openmrs.BaseOpenmrsMetadata;
+import org.openmrs.module.serverDataTransfer.utils.enums.Status;
 
 import javax.persistence.*;
 
@@ -26,7 +28,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "server_transfer_data_transfer")
-public class ServerDataTransfer extends BaseOpenmrsObject implements Serializable {
+public class ServerDataTransfer implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -38,12 +40,22 @@ public class ServerDataTransfer extends BaseOpenmrsObject implements Serializabl
 	@JoinColumn(name = "server_id", nullable = false)
 	private Server server;
 
-	@Column(name = "transfer_date", nullable = false)
+	@Column(name = "date_created", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date dateCreated;
+
+	@Column(name = "content")
+	private byte[] content;
+
+//	@Column(name = "content_type")
+//	private String contentType;
+//
+//	@Column(name = "action", nullable = false)
+//	private String action;
+
+	@Column(name = "transfer_date")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date transferDate;
-
-	@Column(name = "content", nullable = false, columnDefinition = "TEXT")
-	private String content;
 
 	@Column(name = "transfer_feedback")
 	private String transferFeedback;
@@ -51,25 +63,28 @@ public class ServerDataTransfer extends BaseOpenmrsObject implements Serializabl
 	@Column(name = "status")
 	private String status;
 
-	@Override
+	@Column(name = "uuid", length = 38, unique = true, nullable = false)
+	private String uuid = UUID.randomUUID().toString();
+
 	public Integer getId() {
 		return id;
 	}
-	
-	@Override
+
 	public void setId(Integer id) {
 		this.id = id;
 	}
 
-	@Override
-	@Column(name = "uuid", nullable = false, unique = true)
 	public String getUuid() {
-		return super.getUuid();
+		return this.uuid;
 	}
 
-	@Override
 	public void setUuid(String uuid) {
-		super.setUuid(uuid);
+		this.uuid = uuid;
+	}
+
+	public ServerDataTransfer() {
+		this.status = Status.NOT_SENT.name();
+		this.setUuid(UUID.randomUUID().toString());
 	}
 
 	public Server getServer() {
@@ -84,17 +99,41 @@ public class ServerDataTransfer extends BaseOpenmrsObject implements Serializabl
 		return transferDate;
 	}
 
+	public Date getDateCreated() {
+		return dateCreated;
+	}
+
+	public void setDateCreated(Date dateCreated) {
+		this.dateCreated = dateCreated;
+	}
+
 	public void setTransferDate(Date transferDate) {
 		this.transferDate = transferDate;
 	}
 
-	public String getContent() {
+	public byte[] getContent() {
 		return content;
 	}
 
-	public void setContent(String content) {
-		this.content = content;
+	public void setContent(byte[] patients) {
+		this.content = patients;
 	}
+
+//	public String getContentType() {
+//		return contentType;
+//	}
+//
+//	public void setContentType(String contentType) {
+//		this.contentType = contentType;
+//	}
+//
+//	public String getAction() {
+//		return action;
+//	}
+//
+//	public void setAction(String action) {
+//		this.action = action;
+//	}
 
 	public String getTransferFeedback() {
 		return transferFeedback;
