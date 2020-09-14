@@ -1,6 +1,7 @@
 package org.openmrs.module.serverDataTransfer;
 
 import org.openmrs.BaseOpenmrsObject;
+import org.openmrs.util.Security;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -97,10 +98,12 @@ public class Server implements Serializable {
     }
 
     public String getPassword() {
+//        return Security.decrypt(password);
         return password;
     }
 
     public void setPassword(String password) {
         this.password = password;
+//        this.password = Security.encrypt(password);
     }
 }

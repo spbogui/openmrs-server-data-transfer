@@ -20,13 +20,13 @@ public class PersonResource implements Serializable {
     private String deathDate;
     private String causeOfDeath;
     private Set<NameResource> names;
-    private Set<AddressResource> addresses;
+    //private Set<AddressResource> addresses;
     private Set<AttributeResource> attributes;
     private String uuid;
 
     public PersonResource() {
         names = new HashSet<NameResource>(Collections.<NameResource>emptyList());
-        addresses = new HashSet<AddressResource>(Collections.<AddressResource>emptyList());
+        // addresses = new HashSet<AddressResource>(Collections.<AddressResource>emptyList());
         attributes = new HashSet<AttributeResource>(Collections.<AttributeResource>emptyList());
         gender = "";
         birthdateEstimated = false;
@@ -99,13 +99,13 @@ public class PersonResource implements Serializable {
         this.names = names;
     }
 
-    public Set<AddressResource> getAddresses() {
-        return addresses;
-    }
-
-    public void setAddresses(Set<AddressResource> addresses) {
-        this.addresses = addresses;
-    }
+//    public Set<AddressResource> getAddresses() {
+//        return addresses;
+//    }
+//
+//    public void setAddresses(Set<AddressResource> addresses) {
+//        this.addresses = addresses;
+//    }
 
     public Set<AttributeResource> getAttributes() {
         return attributes;
@@ -140,15 +140,15 @@ public class PersonResource implements Serializable {
             nameResource.setPersonName(personName);
             addName(nameResource);
         }
-        if (person.getAddresses() != null) {
-            for (PersonAddress personAddress : person.getAddresses()) {
-                AddressResource addressResource = new AddressResource();
-                addressResource.setPersonAddress(personAddress);
-                addAddress(addressResource);
-            }
-        } else {
-            setAddresses(null);
-        }
+//        if (person.getAddresses() != null) {
+//            for (PersonAddress personAddress : person.getAddresses()) {
+//                AddressResource addressResource = new AddressResource();
+//                addressResource.setPersonAddress(personAddress);
+//                addAddress(addressResource);
+//            }
+//        } else {
+////            setAddresses(null);
+//        }
         if (person.getAttributes() != null) {
             for (PersonAttribute personAttribute : person.getAttributes()) {
                 AttributeResource attributeResource = new AttributeResource();
@@ -170,7 +170,7 @@ public class PersonResource implements Serializable {
         this.getNames().add(nameResource);
     }
 
-    public void addAddress(AddressResource addressResource) {
-        this.getAddresses().add(addressResource);
-    }
+//    public void addAddress(AddressResource addressResource) {
+//        this.getAddresses().add(addressResource);
+//    }
 }

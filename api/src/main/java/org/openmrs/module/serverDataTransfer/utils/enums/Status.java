@@ -4,5 +4,6 @@ public enum Status {
     SENT,
     NOT_SENT,
     FAILED,
-    CONNEXION_FAILED
+    CONNEXION_FAILED,
+    SENDING
 }

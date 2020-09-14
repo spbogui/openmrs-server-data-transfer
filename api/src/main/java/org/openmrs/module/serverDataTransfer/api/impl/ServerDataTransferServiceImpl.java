@@ -112,6 +112,11 @@ public class ServerDataTransferServiceImpl extends BaseOpenmrsService implements
     }
 
     @Override
+    public List<ServerDataTransfer> getAllServerDataTransferredByServer(Integer serverId) {
+        return dao.getAllServerDataTransferredByServer(serverId);
+    }
+
+    @Override
     public ServerDataTransfer getOneServerData(Integer serverDataId) {
         return dao.getOneServerData(serverDataId);
     }
@@ -179,6 +184,11 @@ public class ServerDataTransferServiceImpl extends BaseOpenmrsService implements
     @Override
     public EncounterResult getLatestOutFromCare(String patientUuid, Server server) throws IOException {
         return dao.getLatestOutFromCare(patientUuid, server);
+    }
+
+    @Override
+    public List<ServerDataTransfer> getAllServerDataSendingByServer() {
+        return dao.getAllServerDataSendingByServer();
     }
 
 }

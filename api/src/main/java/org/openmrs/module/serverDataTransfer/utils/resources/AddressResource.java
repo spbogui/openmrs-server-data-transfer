@@ -17,8 +17,8 @@ public class AddressResource implements Serializable {
     private String address4;
     private String address5;
     private String address6;
-    private String startDate;
-    private String endDate;
+//    private Date startDate;
+//    private Date endDate;
     private String latitude;
     private String longitude;
     private String uuid;
@@ -122,21 +122,21 @@ public class AddressResource implements Serializable {
         this.address6 = address6;
     }
 
-    public String getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(String startDate) {
-        this.startDate = startDate;
-    }
-
-    public String getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(String endDate) {
-        this.endDate = endDate;
-    }
+//    public Date getStartDate() {
+//        return startDate;
+//    }
+//
+//    public void setStartDate(Date startDate) {
+//        this.startDate = startDate;
+//    }
+//
+//    public Date getEndDate() {
+//        return endDate;
+//    }
+//
+//    public void setEndDate(Date endDate) {
+//        this.endDate = endDate;
+//    }
 
     public String getLatitude() {
         return latitude;
@@ -182,10 +182,10 @@ public class AddressResource implements Serializable {
             setAddress5(personAddress.getAddress5());
         if (personAddress.getAddress6() != null)
             setAddress6(personAddress.getAddress6());
-        if (personAddress.getStartDate() != null)
-            setStartDate(personAddress.getAddress1());
-        if (personAddress.getEndDate() != null)
-            setEndDate(personAddress.getAddress1());
+//        if (personAddress.getStartDate() != null)
+//            setStartDate(personAddress.getStartDate());
+//        if (personAddress.getEndDate() != null)
+//            setEndDate(personAddress.getEndDate());
         if (personAddress.getLatitude() != null)
             setLatitude(personAddress.getLatitude());
         if (personAddress.getLongitude() != null)

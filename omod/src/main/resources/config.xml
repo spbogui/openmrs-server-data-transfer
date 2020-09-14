@@ -28,6 +28,13 @@
 		<point>org.openmrs.admin.list</point>
 		<class>${project.parent.groupId}.${project.parent.artifactId}.extension.html.AdminList</class>
 	</extension>
+
+	<!-- Adds link to menu bar -->
+	<extension>
+		<point>org.openmrs.gutter.tools</point>
+		<class>${project.parent.groupId}.${project.parent.artifactId}.extension.html.ServerDataTransferGutterLink
+		</class>
+	</extension>
 	
 	<!-- Maps hibernate file's, if present -->
 <!--	<mappingFiles></mappingFiles>-->
@@ -43,7 +50,24 @@
 		<description>Insert here the concept list (comma separated) of data to show in patient transferred resume </description>
 	</globalProperty>
 
-
+	<!-- Privileges  -->
+	<privilege>
+		<name>Manage Data Transfer</name>
+		<description>Can Manage Data Transfer</description>
+	</privilege>
+	<privilege>
+		<name>Transfer Data</name>
+		<description>Can Transfer Data</description>
+	</privilege>
+	<privilege>
+		<name>Create Transfer Server</name>
+		<description>Can Create Transfer Server</description>
+	</privilege>
+	<privilege>
+		<name>View Transfer History</name>
+		<description>Can View Transfer History</description>
+	</privilege>
+	<!-- /Privilèges  -->
 
 	<!-- Internationalization -->
 	<!-- All message codes should start with ${project.parent.artifactId}. -->

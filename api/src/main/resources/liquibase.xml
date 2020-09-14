@@ -63,4 +63,18 @@
                                  referencedColumnNames="server_id"/>
     </changeSet>
 
+    <changeSet id="server-data-transfer-data-manager-2020-09-13" author="BOGUI SERGE">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="1">SELECT COUNT(*) FROM privilege WHERE privilege = 'Manage Data Transfer'</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="1">SELECT COUNT(*) FROM role_privilege WHERE role = 'Data Manager' AND privilege = 'Manage Data Transfer'</sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql>
+            INSERT INTO role_privilege (role, privilege) VALUES ('Data Manager', 'Manage Data Transfer');
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

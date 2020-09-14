@@ -50,6 +50,7 @@ public interface ServerDataTransferDAO {
 	List<ServerDataTransfer> getAllServerData();
 	List<ServerDataTransfer> getAllServerDataByServer(Integer serverId);
 	List<ServerDataTransfer> getAllServerDataNoTransferByServer(Integer serverId);
+	List<ServerDataTransfer> getAllServerDataTransferredByServer(Integer serverId);
 	ServerDataTransfer getOneServerData(Integer serverDataId);
 
     boolean transferData(Server server, String endPoint, ServerDataTransfer data) throws IOException;
@@ -71,4 +72,5 @@ public interface ServerDataTransferDAO {
 	List<PatientResult> findPatientOnServer(String identifier, Server server) throws IOException;
 	EncounterResult getLatestAdmission(String patientUuid, Server server) throws IOException;
 	EncounterResult getLatestOutFromCare(String patientUuid, Server server) throws IOException;
+	List<ServerDataTransfer> getAllServerDataSendingByServer();
 }

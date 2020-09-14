@@ -2,6 +2,11 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 
 <%@ include file="template/localHeader.jsp"%>
+
+<c:if test="${showLogin == 'true'}">
+    <c:redirect url="../../login.htm" />
+</c:if>
+
 <style>
     .result-table {
         border: 1px solid #1aac9b;
@@ -43,13 +48,15 @@
 <hr>
 <div class="boxHeader">
     <form action="" id="form" method="get" style="padding: 10px; font-size: 13px">
-        <label for="identifier">Identifiant du patient recherch&eacute;</label> <input type="text" name="identifier" id="identifier" size="50" value="${currentIdentifier}">
+        <label for="identifier">Identifiant du patient recherch&eacute;</label>
+        <input type="text" name="identifier" id="identifier" class="" size="30" value="${currentIdentifier}">
         <label for="server">Serveur de recherche</label>
-        <select name="serverId" id="server">
+        <select name="serverId" id="server" class="selection" size="50">
             <c:forEach var="server" items="${servers}">
             <option value="${server.serverId}" <c:if test="${server.serverId == currentServer.serverId}"> selected="selected"</c:if> >${server.serverName}</option>
             </c:forEach>
         </select>
+        <button type="submit" class="button">Rechercher</button>
     </form>
 </div>
 <div class="box">
@@ -59,7 +66,17 @@
     </c:if>
 
     <c:if test="${fct:length(currentIdentifier) != 0 }">
-        <div><h2>${patientInfo}</h2></div>
+        <div><h2>${patientInfo} <c:if test="${canTransferIn}">
+
+            <c:url value="/module/serverDataTransfer/patient-info.form" var="urlId">
+                <c:param name="identifier" value="${identifier}"/>
+                <c:param name="serverId" value="${server.serverId}"/>
+                <c:param name="transferIn" value="${identifier}"/>
+            </c:url>
+            <a href="${ urlId }">
+                   Transf&eacute;rer In
+            </a>
+        </c:if></h2></div>
 
         <c:if test="${patientFound != null }">
 

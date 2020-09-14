@@ -12,18 +12,18 @@ public class PatientResource implements Serializable {
     /**
      * The uuid of the person which patient refer
      */
-    private PersonResourceUpdate person;
+    private PersonResource person;
     private Set<IdentifierResource> identifiers;
 
     public PatientResource() {
         identifiers = new HashSet<IdentifierResource>(Collections.<IdentifierResource>emptyList());
     }
 
-    public PersonResourceUpdate getPerson() {
+    public PersonResource getPerson() {
         return person;
     }
 
-    public void setPerson(PersonResourceUpdate person) {
+    public void setPerson(PersonResource person) {
         this.person = person;
     }
 
@@ -38,13 +38,14 @@ public class PatientResource implements Serializable {
     public PatientResource setPatient(Patient patient) {
 //        setPerson(patient.getUuid());
         Set<PatientIdentifier> patientIdentifiers = patient.getIdentifiers();
+
         for (PatientIdentifier patientIdentifier : patientIdentifiers) {
             IdentifierResource identifierResource = new IdentifierResource();
             identifierResource.setIdentifier(patientIdentifier);
             addIdentifier(identifierResource);
         }
 //        PersonResource personResource = new PersonResource().setPerson(patient);
-        setPerson(new PersonResourceUpdate().setPerson(patient));
+        setPerson(new PersonResource().setPerson(patient));
 
         return this;
     }

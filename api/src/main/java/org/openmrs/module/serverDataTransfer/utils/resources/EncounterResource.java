@@ -1,11 +1,14 @@
 package org.openmrs.module.serverDataTransfer.utils.resources;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
 import org.openmrs.Obs;
+import org.openmrs.module.serverDataTransfer.utils.Tools;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -89,20 +92,20 @@ public class EncounterResource implements Serializable {
         this.uuid = uuid;
     }
 
-    public EncounterResource setEncounter(Encounter encounter) {
-        setEncounterDatetime(encounter.getEncounterDatetime().toString());
+    public EncounterResource setEncounter(Encounter encounter) throws JsonProcessingException {
+        setEncounterDatetime(Tools.formatDateToString(encounter.getEncounterDatetime(), Tools.DATE_FORMAT_YYYY_MM_DD));
         setEncounterType(encounter.getEncounterType().getUuid());
         setPatient(encounter.getPatient().getUuid());
         setLocation(encounter.getLocation().getUuid());
         setForm(encounter.getForm().getUuid());
         setUuid(encounter.getUuid());
 
-//        Set<Obs> obsList = encounter.getAllObs();
-//        for (Obs obs: obsList) {
-//            ObsResource obsResource = new ObsResource();
-//            obsResource.setObs(obs);
-//            this.addObsResource(obsResource);
-//        }
+        Set<Obs> obsList = encounter.getAllObs();
+        for (Obs obs: obsList) {
+            ObsResource obsResource = new ObsResource();
+            obsResource.setObs(obs);
+            this.addObsResource(obsResource);
+        }
 
         Set<EncounterProvider> encounterProviders = encounter.getEncounterProviders();
         for (EncounterProvider encounterProvider : encounterProviders) {

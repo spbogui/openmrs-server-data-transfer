@@ -17,9 +17,11 @@ public class PersonResourceUpdate implements Serializable {
     private boolean dead;
     private String deathDate;
     private String causeOfDeath;
+    private Set<NameResource> names;
     private String uuid;
 
     public PersonResourceUpdate() {
+        names = new HashSet<NameResource>(Collections.<NameResource>emptyList());
         gender = "";
         birthdateEstimated = false;
         dead = false;
@@ -83,6 +85,13 @@ public class PersonResourceUpdate implements Serializable {
         this.causeOfDeath = causeOfDeath;
     }
 
+    public Set<NameResource> getNames() {
+        return names;
+    }
+
+    public void setNames(Set<NameResource> names) {
+        this.names = names;
+    }
 
     public String getUuid() {
         return uuid;
@@ -104,8 +113,16 @@ public class PersonResourceUpdate implements Serializable {
         if (person.getCauseOfDeath() != null)
             setCauseOfDeath(person.getCauseOfDeath().getUuid());
 
+        for (PersonName personName : person.getNames()){
+            NameResource nameResource = new NameResource();
+            nameResource.setPersonName(personName);
+            addName(nameResource);
+        }
         setUuid(person.getUuid());
         return this;
     }
 
+    public void addName(NameResource nameResource) {
+        this.getNames().add(nameResource);
+    }
 }

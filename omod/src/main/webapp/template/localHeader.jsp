@@ -56,7 +56,7 @@
 				"pageLength": 10,
 				"order": [[0, "asc"]],
 				"language": {
-					"zeroRecords": "Aucun historique des transferts",
+					"zeroRecords": "Pas de données",
 					//"emptyTable": "Aucune donn&eacute;e",
 					paginate: {
 						previous: 'Pr&eacute;c&eacute;dent',
@@ -70,11 +70,20 @@
 
 			});
 
-			$('button').button();
-			$('.button').button();
+			$('.button')
+					.button();
 			$('.selection').selectmenu();
 			$('input[type=submit]').button();
 			$('input[type=button]').button();
+			$('input[type=text], input[type=password]').button()
+					.css({
+						'font' : 'inherit',
+						'color' : '#444444',
+						'text-align' : 'left',
+						'outline' : 'none',
+						'cursor' : 'text'
+					});
+			$('').button();
 
 		});
 	}
@@ -163,6 +172,15 @@
 		background-color: transparent;
 		/*padding:0;*/
 	}
+
+	/*input {*/
+	/*	border-radius: 2px;*/
+	/*	padding: 10px;*/
+	/*	margin: 5px;*/
+	/*	display: block;*/
+	/*}*/
+
+
 
 	table.dataTable tr td a {
 		text-transform: none;

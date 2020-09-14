@@ -1,9 +1,13 @@
 package org.openmrs.module.serverDataTransfer.utils.resources;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.openmrs.Obs;
+import org.openmrs.module.serverDataTransfer.utils.Json;
+import org.openmrs.module.serverDataTransfer.utils.Tools;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Set;
 
 public class ObsResource implements Serializable {
@@ -19,7 +23,7 @@ public class ObsResource implements Serializable {
     private String comment;
     private boolean voided;
     private String value;
-    private String formFieldNamespace;
+//    private String formFieldNamespace;
     private String uuid;
 
     public ObsResource() {
@@ -121,13 +125,13 @@ public class ObsResource implements Serializable {
         this.value = value;
     }
 
-    public String getFormFieldNamespace() {
-        return formFieldNamespace;
-    }
-
-    public void setFormFieldNamespace(String formFieldNamespace) {
-        this.formFieldNamespace = formFieldNamespace;
-    }
+//    public String getFormFieldNamespace() {
+//        return formFieldNamespace;
+//    }
+//
+//    public void setFormFieldNamespace(String formFieldNamespace) {
+//        this.formFieldNamespace = formFieldNamespace;
+//    }
 
     public String getUuid() {
         return uuid;
@@ -137,17 +141,21 @@ public class ObsResource implements Serializable {
         this.uuid = uuid;
     }
 
-    public ObsResource setObs(Obs obs) {
+    public ObsResource setObs(Obs obs) throws JsonProcessingException {
         setPerson(obs.getPerson().getUuid());
-        setObsDatetime(obs.getObsDatetime().toString());
+        setObsDatetime(Tools.formatDateToString(obs.getObsDatetime(), Tools.DATE_FORMAT_YYYY_MM_DD_H_M_SZ));
         setConcept(obs.getConcept().getUuid());
         setLocation(obs.getLocation().getUuid());
+
         if (obs.getOrder() != null)
             setOrder(obs.getOrder().getUuid());
+
         if (obs.getEncounter() != null)
             setEncounter(obs.getEncounter().getUuid());
+
         if (obs.getAccessionNumber() != null)
             setAccessionNumber(obs.getAccessionNumber());
+
         if (obs.getGroupMembers().isEmpty()) {
             Set<String> orders = new java.util.HashSet<String>(Collections.<String>emptySet());
             for (Obs o : obs.getGroupMembers()) {
@@ -155,25 +163,41 @@ public class ObsResource implements Serializable {
             }
             setGroupMembers(orders);
         }
+
         if (obs.getValueCodedName() != null)
             setValueCodedName(obs.getValueCodedName().getName());
+
         if (obs.getComment() != null)
             setComment(obs.getComment());
+
         setVoided(obs.getVoided());
-        if (obs.getValueAsBoolean() != null)
-            setValue(obs.getValueAsBoolean().toString());
+
+//        System.out.println("-------------------------------------------------------------------------");
+        if (obs.getValueBoolean() != null){
+//            System.out.println(obs.getValueBoolean().toString());
+            setValue(obs.getValueBoolean().toString());
+        }
         else if (obs.getValueCoded() != null) {
+//            System.out.println(obs.getValueCoded().getUuid());
             setValue(obs.getValueCoded().getUuid());
         } else if (obs.getValueNumeric() != null) {
+//            System.out.println(obs.getValueNumeric());
             setValue(obs.getValueNumeric().toString());
         } else if (obs.getValueText() != null) {
-            setValue(obs.getValueText());
+//            System.out.println(obs.getValueText());
+            setValue(obs.getValueText().toString());
         } else if (obs.getValueDatetime() != null) {
-            setValue(obs.getValueDatetime().toString());
+//            System.out.println(Tools.formatDateToString(obs.getValueDatetime(), Tools.DATE_FORMAT_YYYY_MM_DD_H_M_S));
+            setValue(Tools.formatDateToString(obs.getValueDatetime(), Tools.DATE_FORMAT_YYYY_MM_DD_H_M_S));
         } else if (obs.getValueDate() != null) {
-            setValue(obs.getValueDate().toString());
+//            System.out.println(Tools.formatDateToString(obs.getValueDate(), Tools.DATE_FORMAT_YYYY_MM_DD_H_M_S));
+            setValue(Tools.formatDateToString(obs.getValueDate(), Tools.DATE_FORMAT_YYYY_MM_DD_H_M_S));
         }
+        // System.out.println("-------------------------------------------------------------------------");
+
         setUuid(obs.getUuid());
+
+//        System.out.println(Json.prettyPrint(Json.toJson(this)));
 
         return this;
     }

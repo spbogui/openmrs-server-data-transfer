@@ -3,6 +3,9 @@
 
 <%@ include file="template/localHeader.jsp"%>
 
+<c:if test="${showLogin == 'true'}">
+    <c:redirect url="../../login.htm" />
+</c:if>
 <style>
     /*table {*/
     /*    display: block;*/
@@ -25,7 +28,7 @@
         <c:forEach var="server" items="${ serverList }">
             <tr>
                 <td class="bg-green">${server.serverName}</td>
-                <td>
+                <td style="text-align: center">
                     <c:url value="/module/serverDataTransfer/server.form" var="url">
                         <c:param name="serverId" value="${server.serverId}"/>
                     </c:url>
@@ -48,7 +51,7 @@
                 <td class="bg-blue" style="text-align: center">
                     <c:url value="/module/serverDataTransfer/transfer.form" var="transferListUrl">
                         <c:param name="serverId" value="${server.serverId}"/>
-                        <c:param name="action" value="list"/>
+                        <c:param name="action" value="history"/>
                     </c:url>
                     <a class="button bg-light" href="${ transferListUrl }"><spring:message code="serverDataTransfer.transferHistory" /></a>
                 </td>
