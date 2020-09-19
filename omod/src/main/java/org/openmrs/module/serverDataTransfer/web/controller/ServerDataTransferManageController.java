@@ -17,14 +17,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
-import org.openmrs.PersonName;
+import org.openmrs.Person;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.serverDataTransfer.Server;
 import org.openmrs.module.serverDataTransfer.ServerDataTransfer;
 import org.openmrs.module.serverDataTransfer.api.ServerDataTransferService;
-import org.openmrs.module.serverDataTransfer.utils.Json;
+import org.openmrs.module.serverDataTransfer.forms.ServerFrom;
 import org.openmrs.module.serverDataTransfer.utils.Tools;
-import org.openmrs.module.serverDataTransfer.utils.enums.Status;
 import org.openmrs.module.serverDataTransfer.utils.resourcesResult.EncounterResult;
 import org.openmrs.module.serverDataTransfer.utils.resourcesResult.IdentifierResult;
 import org.openmrs.module.serverDataTransfer.utils.resourcesResult.ObsResult;
@@ -40,10 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * The main controller.
@@ -60,7 +56,6 @@ public class  ServerDataTransferManageController {
 	@RequestMapping(value = "/module/serverDataTransfer/manage.form", method = RequestMethod.GET)
 	public void manage(ModelMap model) {
 		if (Context.isAuthenticated()) {
-
 			model.addAttribute("serverList", getService().getAllServer());
 		}
 		model.addAttribute("showLogin", Context.getAuthenticatedUser() == null);
@@ -73,27 +68,22 @@ public class  ServerDataTransferManageController {
 		if (Context.isAuthenticated()) {
 			HttpSession session = request.getSession();
 
-			Server server;
-			if (serverId == null) {
-				server = new Server();
-			} else {
-				server = getService().getOneServer(serverId);
-				if (server == null) {
-					server = new Server();
-				}
+			ServerFrom serverFrom = new ServerFrom();
+			if (serverId != null) {
+				serverFrom.setServer(getService().getOneServer(serverId));
 			}
-			model.addAttribute("serverForm", server);
+			model.addAttribute("serverForm", serverFrom);
 		}
 		model.addAttribute("showLogin", Context.getAuthenticatedUser() == null);
 	}
 
 	@RequestMapping(value = "/module/serverDataTransfer/server.form", method = RequestMethod.POST)
-	public String onPostServer(HttpServletRequest request, Server serverForm, BindingResult result, ModelMap model) {
+	public String onPostServer(HttpServletRequest request, ServerFrom serverForm, BindingResult result, ModelMap model) {
 		if (Context.isAuthenticated()) {
 			HttpSession session = request.getSession();
 
 			String mode = "save";
-			if (serverForm.getServerUrl() != null) {
+			if (serverForm.getServerId() != null) {
 				mode = "edit";
 			}
 			serverForm.setConnected(true);
@@ -101,7 +91,7 @@ public class  ServerDataTransferManageController {
 			if (!getService().testServerDetails(serverForm.getServerUrl(), serverForm.getUsername(), serverForm.getPassword())){
 				session.setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Impossible de se connecter au serveur ! Veuillez vérifiez vos informations de connexion ");
 			} else {
-				if (getService().createServer(serverForm) != null) {
+				if (getService().createServer(serverForm.getServer()) != null) {
 
 					if (mode.equals("save")) {
 						session.setAttribute(WebConstants.OPENMRS_MSG_ATTR, "Serveur enregistré avec succès ");
@@ -119,9 +109,26 @@ public class  ServerDataTransferManageController {
 	@RequestMapping(value = "/module/serverDataTransfer/transfer.form", method = RequestMethod.GET)
 	public String transfer(HttpServletRequest request, @RequestParam(defaultValue = "") Integer serverId,
 						 @RequestParam(required = false, defaultValue = "") String action,
+						 @RequestParam(required = false, defaultValue = "") String identifier,
 						 ModelMap model) throws IOException {
 		if(Context.isAuthenticated()) {
 			HttpSession session = request.getSession();
+
+			Server server = getService().getOneServer(serverId);
+			if (server == null) {
+				session.setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Le server n'est pas spécifié");
+				return "redirect:/module/serverDataTransfer/manage.form";
+			}
+			if (!identifier.isEmpty()) {
+				List<PatientResult> patients = getService().findPatientOnServer(identifier, server);
+				if (patients.size() != 0) {
+					PatientResult retrievedPatient = patients.get(0);
+					Patient patient = updatePatient(retrievedPatient, identifier);
+					if (Context.getPatientService().savePatient(patient) != null) {
+						session.setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Patient ["+ identifier + "] importé avec succès !");
+					}
+				}
+			}
 
 			List<Patient> patientsWithoutName = getService().getPatientWithNoName();
 			List<Patient> patientsWithoutBirthDate = getService().getPatientWithNoAge();
@@ -135,8 +142,6 @@ public class  ServerDataTransferManageController {
 					patientsWithoutName.size() == 0 && patientsWithoutUniqueIdentifier.size() == 0 && patientsWithoutGender.size() == 0) {
 				mode = "transfer";
 			}
-
-			Server server = getService().getOneServer(serverId);
 			if (!getService().testServerDetails(server.getServerUrl(), server.getUsername(), server.getPassword())){
 				session.setAttribute(WebConstants.OPENMRS_ERROR_ATTR, server.getServerName() + " n'est pas disponible. Veuillez vérifier les paramètres de connexion ou votre installation réseau !");
 			}
@@ -214,32 +219,14 @@ public class  ServerDataTransferManageController {
 					boolean canTransferIn = false;
 
 					if (!transferIn.isEmpty()) {
-						Patient patient = new Patient();
-						for (IdentifierResult identifierResult : retrievedPatient.getIdentifiers()) {
-
-							patient.addIdentifier(new PatientIdentifier(identifierResult.getDisplay().split("=")[1].trim(),
-									Context.getPatientService().getPatientIdentifierType(identifierResult.getDisplay().split("=")[0].trim()),
-									Context.getLocationService().getDefaultLocation()));
-						}
-
-						patient.setUuid(retrievedPatient.getUuid());
-						patient.addName(retrievedPatient.getPerson().getPreferredName().getPersonName());
-						patient.setBirthdate(retrievedPatient.getPerson().getBirthdate());
-						patient.setGender(retrievedPatient.getPerson().getGender());
-						patient.setDead(false);
-						patient.setCreator(Context.getAuthenticatedUser());
-						patient.setPersonCreator(patient.getCreator());
-						patient.setDateCreated(new Date());
-						patient.setPersonDateCreated(patient.getDateCreated());
-						patient.setVoided(false);
-						patient.setPersonVoided(patient.getVoided());
-
+						getPatient(retrievedPatient);
+						Patient patient = getPatient(retrievedPatient);
 						Context.getPatientService().savePatient(patient);
 
 						return "redirect:/patientDashboard.form?patientId=" + patient.getPatientId();
 					}
-					EncounterResult latestAdmissionInfo = getService().getLatestAdmission(retrievedPatient.getUuid(), getService().getOneServer(1));
-					EncounterResult latestOutOfCareInfo = getService().getLatestOutFromCare(retrievedPatient.getUuid(), getService().getOneServer(1));
+					EncounterResult latestAdmissionInfo = getService().getLatestAdmission(retrievedPatient.getUuid(), getService().getOneServer(serverId));
+					EncounterResult latestOutOfCareInfo = getService().getLatestOutFromCare(retrievedPatient.getUuid(), getService().getOneServer(serverId));
 
 					if (latestOutOfCareInfo.getEncounterDatetime() != null) {
 						if (latestAdmissionInfo.getEncounterDatetime().before(latestOutOfCareInfo.getEncounterDatetime())) {
@@ -258,7 +245,6 @@ public class  ServerDataTransferManageController {
 						String currentLocation = Context.getAdministrationService().getGlobalProperty("default_location");
 						String patientLocation = latestAdmissionInfo.getLocation().getDisplay();
 
-
 						if (currentLocation.equals(patientLocation))
 							patientInfo = "Le patient est Pris en charge sur votre site";
 						else {
@@ -272,27 +258,24 @@ public class  ServerDataTransferManageController {
 
 					String conceptsResumeString = Context.getAdministrationService().getGlobalProperty("serverDataTransfer.transferResumeDataConcepts");
 					String[] conceptResumeStringList =  conceptsResumeString.split(",");
-					for (int i = 0; i < conceptResumeStringList.length; i++) {
-						conceptNames.add(Context.getConceptService().getConcept(Integer.parseInt(conceptResumeStringList[i])).getName(Locale.FRENCH).getName());
+					for (String s : conceptResumeStringList) {
+						conceptNames.add(Context.getConceptService().getConcept(Integer.parseInt(s)).getName(Locale.FRENCH).getName());
 					}
 
 					List<String> nameVisited = new ArrayList<String>();
 					for (ObsResult obsResult : latestAdmissionInfo.getObs()) {
-//					String conceptString = Context.getConceptService().getConcept(obsResult.getDisplay().split(":")[0])
-//							.getName(Locale.FRENCH).getConcept().getConceptId().toString();
 						String conceptString = obsResult.getDisplay().split(":")[0];
 						if (conceptNames.contains(conceptString) && !nameVisited.contains(obsResult.getDisplay())) {
 							nameVisited.add(obsResult.getDisplay());
 							obsResults.add(obsResult);
 						}
 					}
-
-					//patients.get(0).
 					model.addAttribute("patientFound", patients.get(0));
 					model.addAttribute("latestAdmissionInfo", latestAdmissionInfo);
 					model.addAttribute("currentServer", server);
 					model.addAttribute("obsResults", obsResults);
 					model.addAttribute("canTransferIn", canTransferIn);
+					model.addAttribute("patientInfo", patientInfo);
 				}
 			}
 
@@ -302,6 +285,68 @@ public class  ServerDataTransferManageController {
 		model.addAttribute("showLogin", Context.getAuthenticatedUser() == null);
 
 		return null;
+	}
+
+	private Patient updatePatient(PatientResult patientResult, String identifier) {
+		Patient patient = Context.getPatientService().getPatientsByIdentifier(identifier, false).get(0);
+		Set<PatientIdentifier> identifiers = patient.getIdentifiers();
+		List<String> patientIdentifiers = new ArrayList<String>();
+		for (PatientIdentifier patientIdentifier : identifiers) {
+			patientIdentifiers.add(patientIdentifier.getIdentifier());
+		}
+
+		for (IdentifierResult identifierResult : patientResult.getIdentifiers()) {
+			String ident = identifierResult.getDisplay().split("=")[1].trim();
+			String identType = identifierResult.getDisplay().split("=")[0].trim();
+			if (patientIdentifiers.contains(ident)){
+				for (PatientIdentifier patientIdentifier : identifiers) {
+					if (ident.equals(patientIdentifier.getIdentifier())) {
+						patient.getIdentifiers().remove(patientIdentifier);
+						break;
+					}
+				}
+			}
+			getPatientIdentifier(patient, identifierResult.getUuid(), ident, identType);
+		}
+		return getPatient(patientResult, patient);
+	}
+
+	private void getPatientIdentifier(Patient patient, String uuid, String ident, String identType) {
+		PatientIdentifier patientIdent = new PatientIdentifier(ident,
+				Context.getPatientService().getPatientIdentifierType(identType),
+				Context.getLocationService().getDefaultLocation());
+		patientIdent.setUuid(uuid);
+		patientIdent.setCreator(Context.getAuthenticatedUser());
+		patientIdent.setDateCreated(new Date());
+		patientIdent.setVoided(false);
+		patient.addIdentifier(patientIdent);
+	}
+
+	private Patient getPatient(PatientResult patientResult) {
+		Patient patient = new Patient();
+
+		for (IdentifierResult identifierResult : patientResult.getIdentifiers()) {
+			String ident = identifierResult.getDisplay().split("=")[1].trim();
+			String identType = identifierResult.getDisplay().split("=")[0].trim();
+			getPatientIdentifier(patient, identifierResult.getUuid(), ident, identType);
+		}
+
+		return getPatient(patientResult, patient);
+	}
+
+	private Patient getPatient(PatientResult patientResult, Patient patient) {
+		patient.setUuid(patientResult.getUuid());
+		patient.addName(patientResult.getPerson().getPreferredName().getPersonName());
+		patient.setBirthdate(patientResult.getPerson().getBirthdate());
+		patient.setGender(patientResult.getPerson().getGender());
+		patient.setDead(false);
+		patient.setCreator(Context.getAuthenticatedUser());
+		patient.setPersonCreator(patient.getCreator());
+		patient.setDateCreated(new Date());
+		patient.setPersonDateCreated(patient.getDateCreated());
+		patient.setVoided(false);
+		patient.setPersonVoided(patient.getVoided());
+		return patient;
 	}
 
 }

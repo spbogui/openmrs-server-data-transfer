@@ -89,8 +89,8 @@
                     <tr><td>Date de naissance : </td><td><fmt:formatDate type="date" value="${patientFound.person.birthdate}" pattern="dd/MM/yyyy"/></td></tr>
                     <tr><td>Genre : </td><td>${patientFound.person.gender}</td></tr>
                     <tr>
-                        <td colspan="2">
-                            <hr>
+                        <td colspan="2" class="table-title">
+                            <h3>Information de prise en charge</h3>
                         </td>
                     </tr>
                     <tr>

@@ -112,13 +112,11 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 					.setParameter("lastDate", lastDate);
 
 			if (firstDate != null) {
-//				obsQuery.setParameter("firstDate", firstDate);
 				encounterQuery.setParameter("firstDate", firstDate);
 				patientQuery.setParameter("firstDate", firstDate);
 				patientIdentifierQuery.setParameter("firstDate", firstDate);
 			}
 
-//			DataTransferResourceModel resourceModel = new DataTransferResourceModel();
 			DataTransferModelUUID resourceModel = new DataTransferModelUUID();
 
 			List<Patient> people = (List<Patient>) patientQuery.list();
@@ -132,34 +130,27 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 			System.out.println("Number of patient to import : " + people.size());
 
 			if (!people.isEmpty()) {
-				count = 0;
 
 				System.out.println("Beginning the creation of encounters to transfer at : " + new Date().toString());
 				for (Patient patient : people) {
 					count++;
 
-//					PatientAction patientResourceAction = new PatientAction();
 					PersonAction personResourceAction = new PersonAction();
 
 					if (firstDate == null) {
 						personResourceAction.addAction(Action.SAVE.name());
-//						patientResourceAction.addAction(Action.SAVE.name());
-						if (patient.getDateVoided() != null) {
-//							patientResourceAction.addAction(Action.DELETE.name());
+						if (patient.getVoided()) {
 							personResourceAction.addAction(Action.DELETE.name());
 						}
 					} else {
 						if (patient.getDateCreated().after(firstDate)){
-//							patientResourceAction.addAction(Action.SAVE.name());
 							personResourceAction.addAction(Action.SAVE.name());
 						}
 						if (patient.getDateChanged().after(firstDate)) {
-//							patientResourceAction.addAction(Action.UPDATE.name());
 							personResourceAction.addAction(Action.UPDATE.name());
 						}
 						if (patient.getDateVoided().after(firstDate)) {
 							personResourceAction.addAction(Action.DELETE.name());
-//							patientResourceAction.addAction(Action.DELETE.name());
 						}
 					}
 					personResourceAction.setPersonUuid(patient.getUuid());
@@ -210,7 +201,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 				count = resourceModel.getResourceSize();
 
-				if (resourceModel.getResourceSize() > mod || count == encounters.size()) {
+				if (resourceModel.getResourceSize() > 2000 || count == encounters.size()) {
 					System.out.println("Saving data at : " + new Date().toString());
 					ServerDataTransfer serverDataTransfer = new ServerDataTransfer();
 					serverDataTransfer.setContent(Tools.createByteFromObject(resourceModel));
@@ -255,7 +246,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 					resourceModel.addObsResourceAction(obsResourceAction);
 
-					if (resourceModel.getResourceSize() > mod) {
+					if (resourceModel.getResourceSize() > 5000) {
 						System.out.println("Saving data at : " + new Date().toString());
 						ServerDataTransfer serverDataTransfer = new ServerDataTransfer();
 						serverDataTransfer.setContent(Tools.createByteFromObject(resourceModel));
@@ -298,264 +289,6 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void prepareDataToTransfer(Integer serverId) {
-//		Date lastDate = new Date();
-//		Date firstDate = getLatestDatePoint(getOneServer(1));
-//		boolean canCreate = false;
-//
-//		String whereQuery = "e.dateCreated <= :lastDate OR e.dateCreated <= :lastDate OR e.dateVoided <= :lastDate";
-//		if (firstDate != null) {
-//			whereQuery = "(e.dateCreated BETWEEN :lastDate AND :firstDate) OR (e.dateCreated BETWEEN :lastDate AND :firstDate) OR (e.dateVoided BETWEEN :lastDate AND :firstDate)";
-//		}
-//
-//		if (getOneServerData(1) != null) {
-//			return;
-//		}
-//
-//		Query personQuery = sessionFactory.getCurrentSession()
-//				.createQuery("FROM Person e WHERE " + whereQuery)
-//				.setParameter("lastDate", lastDate);
-//
-//		Query personAddressQuery = sessionFactory.getCurrentSession()
-//				.createQuery("FROM PersonAddress e WHERE " + whereQuery)
-//				.setParameter("lastDate", lastDate);
-//
-//		Query personAttributeQuery = sessionFactory.getCurrentSession()
-//				.createQuery("FROM PersonAttribute e WHERE " + whereQuery)
-//				.setParameter("lastDate", lastDate);
-//
-//		Query patientQuery = sessionFactory.getCurrentSession()
-//				.createQuery("FROM Patient e WHERE " + whereQuery)
-//				.setParameter("lastDate", lastDate);
-//
-//		Query patientIdentifierQuery = sessionFactory.getCurrentSession()
-//				.createQuery("FROM PatientIdentifier e WHERE " + whereQuery)
-//				.setParameter("lastDate", lastDate);
-//
-//		Query encounterQuery = sessionFactory.getCurrentSession()
-//				.createQuery("FROM Encounter e WHERE " + whereQuery)
-//				.setParameter("lastDate", lastDate);
-//
-//		Query obsQuery = sessionFactory.getCurrentSession()
-//				.createQuery("FROM Obs e WHERE " + whereQuery)
-//				.setParameter("lastDate", lastDate);
-//
-//		if (firstDate != null) {
-//			personQuery.setParameter("firstDate", firstDate);
-//			personAddressQuery.setParameter("firstDate", firstDate);
-//			personAttributeQuery.setParameter("firstDate", firstDate);
-//			patientQuery.setParameter("firstDate", firstDate);
-//			patientIdentifierQuery.setParameter("firstDate", firstDate);
-//			encounterQuery.setParameter("firstDate", firstDate);
-//			obsQuery.setParameter("firstDate", firstDate);
-//		}
-//
-//		DataTransferModel dataTransferModel = new DataTransferModel(lastDate);
-//
-//		List<Person> persons = personQuery.list();
-//		if (!persons.isEmpty()) {
-//			canCreate = true;
-//			Set<PersonAction> personActions = new HashSet<PersonAction>(Collections.<PersonAction>emptySet());
-//			for (Person p :
-//					persons) {
-//				PersonAction personAction = new PersonAction();
-//				if (firstDate == null) {
-//					personAction.setActions(Action.SAVE.name());
-//				} else {
-//					if (p.getDateCreated().after(firstDate))
-//						personAction.setActions(Action.SAVE.name());
-//					else {
-//						if (p.getDateChanged().after(firstDate))
-//							personAction.setActions(Action.DELETE.name());
-//						else
-//							personAction.setActions(Action.SAVE.name());
-//					}
-//				}
-//				personAction.setPerson(p);
-//				personActions.add(personAction);
-//			}
-//
-//			dataTransferModel.setPersonActions(personActions);
-//		}
-//
-//		List<PersonAddress> personAddresses = personAddressQuery.list();
-//		if (!personAddresses.isEmpty()) {
-//			canCreate = true;
-//			Set<AddressAction> addressActions = new HashSet<AddressAction>(Collections.<AddressAction>emptySet());
-//			for (PersonAddress p :
-//					personAddresses) {
-//				AddressAction addressAction = new AddressAction();
-//				if (firstDate == null) {
-//					addressAction.setAction(Action.SAVE.name());
-//				} else {
-//					if (p.getDateChanged().after(firstDate))
-//						addressAction.setAction(Action.SAVE.name());
-//					else {
-//						if (p.getDateChanged().after(firstDate))
-//							addressAction.setAction(Action.DELETE.name());
-//						else
-//							addressAction.setAction(Action.SAVE.name());
-//					}
-//				}
-//				addressAction.setPersonAddress(p);
-//				addressActions.add(addressAction);
-//			}
-//			dataTransferModel.setAddressActions(addressActions);
-//		}
-//
-//		List<PersonAttribute> personAttributes = personAttributeQuery.list();
-//		if (!personAttributes.isEmpty()) {
-//			canCreate = true;
-//			Set<PatientAttributeAction> patientAttributeActions = new HashSet<PatientAttributeAction>(Collections.<PatientAttributeAction>emptySet());
-//			for (PersonAttribute p :
-//					personAttributes) {
-//				PatientAttributeAction patientAttributeAction = new PatientAttributeAction();
-//				if (firstDate == null) {
-//					patientAttributeAction.setAction(Action.SAVE.name());
-//				} else {
-//					if (p.getDateChanged().after(firstDate))
-//						patientAttributeAction.setAction(Action.SAVE.name());
-//					else {
-//						if (p.getDateChanged().after(firstDate))
-//							patientAttributeAction.setAction(Action.DELETE.name());
-//						else
-//							patientAttributeAction.setAction(Action.SAVE.name());
-//					}
-//				}
-//				patientAttributeAction.setPersonAttribute(p);
-//				patientAttributeActions.add(patientAttributeAction);
-//			}
-//			dataTransferModel.setPatientAttributeActions(patientAttributeActions);
-//		}
-//
-//		List<Patient> patients = patientQuery.list();
-//		if (!patients.isEmpty()) {
-//			canCreate = true;
-//			Set<PatientAction> patientActions = new HashSet<PatientAction>(Collections.<PatientAction>emptySet());
-//			for (Patient p :
-//					patients) {
-//				PatientAction patientAction = new PatientAction();
-//				if (firstDate == null) {
-//					patientAction.setAction(Action.SAVE.name());
-//					continue;
-//				} else {
-//					if (p.getDateCreated().after(firstDate))
-//						patientAction.setAction(Action.SAVE.name());
-//					else {
-//						if (p.getDateChanged().after(firstDate))
-//							patientAction.setAction(Action.DELETE.name());
-//						else
-//							patientAction.setAction(Action.SAVE.name());
-//					}
-//				}
-//				patientAction.setPatient(p);
-//				patientActions.add(patientAction);
-//			}
-//			dataTransferModel.setPatientActions(patientActions);
-//		}
-//
-//
-//		List<PatientIdentifier> patientIdentifiers = patientIdentifierQuery.list();
-//		if (!patientIdentifiers.isEmpty()) {
-//			canCreate = true;
-//			Set<IdentifierAction> identifierActions = new HashSet<IdentifierAction>(Collections.<IdentifierAction>emptySet());
-//			for (PatientIdentifier p :
-//					patientIdentifiers) {
-//				IdentifierAction identifierAction = new IdentifierAction();
-//				if (firstDate == null) {
-//					identifierAction.setAction(Action.SAVE.name());
-//				} else {
-//					if (p.getDateCreated().after(firstDate))
-//						identifierAction.setAction(Action.SAVE.name());
-//					else {
-//						if (p.getDateChanged().after(firstDate))
-//							identifierAction.setAction(Action.DELETE.name());
-//						else
-//							identifierAction.setAction(Action.SAVE.name());
-//					}
-//				}
-//				identifierAction.setPatientIdentifier(p);
-//				identifierActions.add(identifierAction);
-//			}
-//			dataTransferModel.setIdentifierActions(identifierActions);
-//		}
-//
-//		List<Encounter> encounters = encounterQuery.list();
-//		if (!encounters.isEmpty()) {
-//			canCreate = true;
-//			Set<EncounterAction> encounterActions = new HashSet<EncounterAction>(Collections.<EncounterAction>emptySet());
-//			for (Encounter e :
-//					encounters) {
-//				EncounterAction encounterAction = new EncounterAction();
-//				if (firstDate == null) {
-//					encounterAction.setAction(Action.SAVE.name());
-//				} else {
-//					if (e.getDateCreated().after(firstDate))
-//						encounterAction.setAction(Action.SAVE.name());
-//					else {
-//						if (e.getDateChanged().after(firstDate))
-//							encounterAction.setAction(Action.DELETE.name());
-//						else
-//							encounterAction.setAction(Action.SAVE.name());
-//					}
-//				}
-//				encounterAction.setEncounter(e);
-//				encounterActions.add(encounterAction);
-//			}
-//			dataTransferModel.setEncounterActions(encounterActions);
-//		}
-//
-//		List<Obs> obsList = obsQuery.list();
-//		if (!obsList.isEmpty()) {
-//			canCreate = true;
-//			Set<ObsAction> obsActions = new HashSet<ObsAction>(Collections.<ObsAction>emptySet());
-//			for (Obs o :
-//					obsList) {
-//				ObsAction obsAction = new ObsAction();
-//				if (firstDate == null) {
-//					obsAction.setAction(Action.SAVE.name());
-//				} else {
-//					if (o.getDateCreated().after(firstDate))
-//						obsAction.setAction(Action.SAVE.name());
-//					else {
-//						if (o.getDateChanged().after(firstDate))
-//							obsAction.setAction(Action.DELETE.name());
-//						else
-//							obsAction.setAction(Action.SAVE.name());
-//					}
-//				}
-//				obsAction.setObs(o);
-//				obsActions.add(obsAction);
-//			}
-//			dataTransferModel.setObsActions(obsActions);
-//		}
-//		if (canCreate) {
-//
-//			ServerDataTransfer serverDataTransfer = new ServerDataTransfer();
-//
-//			Server server = getOneServer(serverId);
-//			if (server == null) {
-//				server = new Server();
-//				server.setServerName("SIGDEP 2 Serveur");
-//				server.setPassword("password");
-//				server.setServerUrl("http://openmrs.server.ci");
-//				server.setUsername("username");
-//				createServer(server);
-//			}
-//
-//			serverDataTransfer.setContent(Tools.createByteFromObject(dataTransferModel));
-//			serverDataTransfer.setDateCreated(lastDate);
-//			serverDataTransfer.setServer(server);
-//
-//			createServerData(serverDataTransfer);
-//			ObjectMapper mapper = new ObjectMapper();
-//			try {
-//				String json = mapper.writeValueAsString(dataTransferModel);
-//				System.out.println("ResultingJSONString = " + json);
-//			} catch (JsonProcessingException e) {
-//				e.printStackTrace();
-//			}
-//		}
-
 	}
 
 	@Override
@@ -647,7 +380,6 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 		}
 		serverDataTransfer.setStatus(Status.SENDING.name());
 		createServerData(serverDataTransfer);
-
 		DataTransferModelUUID data = Tools.createDataTransferModelUUIDFromByte(serverDataTransfer.getContent());
 
 		String payload = "";
@@ -664,7 +396,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 			Set<EncounterAction> encounterActions = new HashSet<EncounterAction>(data.getEncounterActions());
 			Set<ObsAction> obsActions = new HashSet<ObsAction>(data.getObsActions());
 
-			System.out.println("-------------------------------- Exporting person info ----------------------------- " + count);
+			System.out.println("-------------------------------- Exporting person info ----------------------------- ");
 
 			for (PersonAction personAction : personActions) {
 
@@ -688,8 +420,8 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 					if (patientResult != null && patientResult.size() != 0) {
 						if (!patient.getUuid().equals(patientResult.get(0).getUuid())) {
 							canContinue = false;
-							info = "("+ count + ")" + "Exporting stopped on sending name for [ "+ personInfo + "] on server  : [An other patient have the same identifier on server. " +
-									"Click here to <a class=\"button\" href=\"/module/serverDataTransfer/transfer.form?import="+ patient.getPatientIdentifier().getIdentifier() + "\">Import remote patient info</a>"  ;
+							info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending name for [ "+ personInfo + "] on server  :  \n[Un autre patient possède le même identifiant sur le serveur." +
+									"Click here to <a class=\"button\" href=\"/module/serverDataTransfer/transfer.form?identifier="+ patient.getPatientIdentifier().getIdentifier() + "\">Importer les informations du patients pour continuer</a>]"  ;
 							break;
 						}
 					}
@@ -708,7 +440,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 						if (payload.contains("error")) {
 							// System.out.println("Payload person for [" + personAction.getPersonUuid() + "] " + Action.DELETE.name() + " : " + payload);
-							info = "("+ count + ")" + "Exporting stopped on voiding info for [ "+ personInfo + "] in server  : ";
+							info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on voiding info for [ "+ personInfo + "] in server  : ";
 							canContinue = false;
 							break;
 						}
@@ -719,7 +451,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 						payload = postData(url, user, pass, personLink, Tools.objectToString(new PersonResourceUpdate().setPerson(person)));
 						if (payload.contains("error")) {
 							// System.out.println("Payload person [" + personAction.getPersonUuid() + "] for " + Action.UPDATE.name() + " : " + payload);
-							info = "("+ count + ")" + "Exporting stopped on sending [ "+ personInfo + "] on server  : ";
+							info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending [ "+ personInfo + "] on server  : ";
 							canContinue = false;
 						}
 
@@ -736,7 +468,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 								if (payload.contains("error")) {
 									// System.out.println("Payload name for " + Action.UPDATE.name() + " : " + payload);
-									info = "("+ count + ")" + "Exporting stopped on sending name for [ "+ personInfo + "] on server  : ";
+									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending name for [ "+ personInfo + "] on server  : ";
 									canContinue = false;
 									break;
 								}
@@ -756,7 +488,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 								}
 								if (payload.contains("error")) {
 									System.out.println("Payload address for [" + personAddress.getUuid() + "] : " + payload);
-									info = "("+ count + ")" + "Exporting stopped on sending address for [ "+ personInfo + "] in server  : ";
+									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending address for [ "+ personInfo + "] in server  : ";
 									canContinue = false;
 									break;
 								}
@@ -779,7 +511,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 								if (payload.contains("error")) {
 									System.out.println("Payload attribute for [" + personAttribute.getUuid() + "] : " + payload);
-									info = "("+ count + ")" + "Exporting stopped on sending attribute for [ "+ personInfo + "] on server  : ";
+									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending attribute for [ "+ personInfo + "] on server  : ";
 									canContinue = false;
 									break;
 								}
@@ -796,7 +528,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 								payload = postData(url, user, pass, idLink, Tools.objectToString(new IdentifierResource().setIdentifier(identifier)));
 
 								if (payload.contains("error")) {
-									info = "Exporting stopped on updating patient with identifier [ " + patient.getPatientIdentifier() + "] on server  : ";
+									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on updating patient with identifier [ " + patient.getPatientIdentifier() + "] on server  : ";
 									canContinue = false;
 									break;
 								}
@@ -812,7 +544,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 						payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new PatientResource().setPatient(patient)));
 						// System.out.println("Exporting person to save peron with identifier : " + patient.getPatientIdentifier());
 						if (payload.contains("error")) {
-							info = "("+ count + ")" + "Exporting stopped on sending person ["+ personInfo + "] in server : ";
+							info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person ["+ personInfo + "] in server : ";
 							// System.out.println(Json.prettyPrint(Json.toJson(patient)));
 							canContinue = false;
 							break;
@@ -822,7 +554,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 							String addressLink = endPoint + "/person/" + person.getUuid() + "/address";
 							payload = postData(url, user, pass, addressLink, Tools.objectToString(new AddressResource().setPersonAddress(person.getPersonAddress())));
 							if (payload.contains("error")) {
-								info = "("+ count + ")" + "Exporting stopped on sending person address ["+ personInfo + "] in server : ";
+								info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person address ["+ personInfo + "] in server : ";
 								canContinue = false;
 								break;
 							}
@@ -833,7 +565,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 							for (PersonAttribute personAttribute : person.getAttributes()) {
 								payload = postData(url, user, pass, addressLink, Tools.objectToString(new AttributeResource().setPersonAttribute(personAttribute)));
 								if (payload.contains("error")) {
-									info = "(" + count + ")" + "Exporting stopped on sending person attribute [" + personInfo + "] in server : ";
+									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person attribute [" + personInfo + "] in server : ";
 									canContinue = false;
 									break;
 								}
@@ -843,23 +575,25 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 						payload = "";
 					}
 				}
-				if (canContinue)
+				if (canContinue) {
 					data.getPersonActions().remove(personAction);
-
+				}
 			}
 
 			if (canContinue) {
-				System.out.println("-------------------------------- Adding Encounters ----------------------------- " + count);
-				for (EncounterAction encounterAction : encounterActions) {
+				count = 0;
+				System.out.println("-------------------------------- Adding Encounters ----------------------------- ");
 
+				for (EncounterAction encounterAction : encounterActions) {
+					count++;
 					restLink = new StringBuilder(endPoint + "/encounter");
 					Encounter encounter = Context.getEncounterService().getEncounterByUuid(encounterAction.getEncounterUuid());
-					System.out.println("--------------------------------" + encounter.getEncounterType().getName() + "----------------------------- ");
+					System.out.println("--------------------------------" + encounter.getEncounterType().getName() + "----------------------------- " + count);
 					if (!getResource(url, user, pass, restLink.toString(), encounter.getUuid()).contains("error")) {
 						if (encounter.getVoided()) {
 							payload = deleteData(url, user, pass, restLink.toString(), encounterAction.getEncounterUuid());
 							if (payload.contains("error")) {
-								info = "Exporting stopped on deleting encounter [" + encounter .getEncounterType().getName()
+								info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on deleting encounter [" + encounter .getEncounterType().getName()
 										+ "] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
 										+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
 								canContinue = false;
@@ -869,7 +603,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 							restLink.append("/").append(encounterAction.getEncounterUuid());
 							payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new EncounterResource().setEncounter(encounter)));
 							if (payload.contains("error")) {
-								info = "Exporting stopped on updating encounter [" + encounter .getEncounterType().getName()
+								info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on updating encounter [" + encounter .getEncounterType().getName()
 										+ "] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
 										+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
 								canContinue = false;
@@ -880,7 +614,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 						if (!encounter.getVoided()) {
 							payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new EncounterResource().setEncounter(encounter)));
 							if (payload.contains("error")) {
-								info = "Exporting stopped on saving encounter [" + encounter.getEncounterType().getName() +
+								info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on saving encounter [" + encounter.getEncounterType().getName() +
 										"] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
 										+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
 								canContinue = false;
@@ -888,49 +622,55 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 							}
 						}
 					}
-					count++;
 					payload = "";
 					data.getEncounterActions().remove(encounterAction);
 				}
 			}
 
 			if (canContinue) {
+				count = 0;
 				System.out.println("-------------------------------- Sending Obs informations ----------------------------- ");
 
 				for (ObsAction obsAction : obsActions) {
+					count++;
+
 					restLink = new StringBuilder(endPoint + "/obs");
 					Obs obs = Context.getObsService().getObsByUuid(obsAction.getObs());
-					if (!getResource(url, user, pass, endPoint + "/obs", obs.getUuid()).contains("error")) {
-						if (obs.getVoided()) {
-							payload = deleteData(url, user, pass, restLink.toString(), obs.getUuid());
-							if (payload.contains("error")) {
+					if (obs != null) {
+						ObsResource obsResource = new ObsResource().setObs(obs);
+						if (!obsResource.getValue().isEmpty()) {
+							if (!getResource(url, user, pass, endPoint + "/obs", obs.getUuid()).contains("error")) {
+								if (obs.getVoided()) {
+									payload = deleteData(url, user, pass, restLink.toString(), obs.getUuid());
+									if (payload.contains("error")) {
 //								System.out.println("Payload obs for " + serverAction + " : " + payload);
-								info = "Exporting stopped on sending obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ "+ obs.getPerson().getPersonName() + "] on server  : ";
-								canContinue = false;
-								break;
-							}
-						} else {
-							restLink.append("/").append( obsAction.getObs());
-							payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new ObsResource().setObs(obs)));
-							if (payload.contains("error")) {
-								info = "Exporting stopped on updating obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ "+ obs.getPerson().getPersonName() + "] on server  : ";
-								canContinue = false;
-								break;
+										info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on sending obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
+										canContinue = false;
+										break;
+									}
+								} else {
+									restLink.append("/").append(obsAction.getObs());
+									payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(obsResource));
+									if (payload.contains("error")) {
+										info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on updating obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
+										canContinue = false;
+										break;
+									}
+								}
+							} else {
+								if (!obs.getVoided()) {
+									payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(obsResource));
+									if (payload.contains("error")) {
+										info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on saving obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
+										canContinue = false;
+										break;
+									}
+								}
 							}
 						}
-					} else {
-						if (!obs.getVoided()) {
-							payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new ObsResource().setObs(obs)));
-							if (payload.contains("error")) {
-								info = "Exporting stopped on saving obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
-								canContinue = false;
-								break;
-							}
-						}
+						payload = "";
+						data.getObsActions().remove(obsAction);
 					}
-
-					payload = "";
-					data.getObsActions().remove(obsAction);
 				}
 			}
 
@@ -938,11 +678,15 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 			if (canContinue) {
 				System.out.println("-------------------------------- All import achieved successfully ----------------------------- ");
 				int total =  personActions.size() + encounterActions.size() +  obsActions.size();
+				String patientMessage = personActions.size() != 0 ? "<li>Patient info trasnferred : <strong>" + personActions.size() + "</strong></li>" : "";
+				String encounterMessage = encounterActions.size() != 0 ? "<li>Encounter info transferred : <strong>" + encounterActions.size() + "</strong></li>" : "";
+				String obsMessage = obsActions.size() != 0 ? "<li>Obs info transferred : <strong>" + obsActions.size() + "</strong></li>" : "";
 				message = "Data sent successfully to server with info [Total exported : " + total + "] : " +
 						"<ul>" +
-						"<li>Patient info exported : <strong>" + personActions.size() + "</strong></li>" +
-						"<li>Encounter info exported <strong>: " + encounterActions.size() + "</strong></li>" +
-						"<li>Obs info exported : <strong>" + obsActions.size() + "</strong></li>";
+						patientMessage +
+						encounterMessage +
+						obsMessage +
+						"</ul>";
 
 				serverDataTransfer.setContent(null);
 				serverDataTransfer.setStatus(Status.SENT.name());
@@ -988,71 +732,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 	@Override
 	public String postDataToServer(Server server, String endPoint, DataTransferResourceModel data) {
-		String url = server.getServerUrl();
-		String user = server.getUsername();
-		String pass = server.getPassword();
-
-		String payload = "";
-
-		if (data != null) {
-			for (PersonResourceAction personResourceAction : data.getPersonResourceActions()) {
-				endPoint += endPoint + "/person";
-				for (String serverAction : personResourceAction.getActions()) {
-					if (serverAction.equals(Action.UPDATE.name()) || serverAction.equals(Action.SAVE.name())) {
-						if (serverAction.equals(Action.UPDATE.name())) {
-							endPoint += endPoint + "/" + personResourceAction.getPersonResource().getUuid();
-						}
-						payload = postData(url, user, pass, endPoint, Tools.objectToString(personResourceAction.getPersonResource()));
-					} else {
-						payload = deleteData(url, user, pass, endPoint, personResourceAction.getPersonResource().getUuid());
-					}
-				}
-			}
-
-			for (PatientResourceAction patientResourceAction : data.getPatientResourceActions()) {
-				endPoint += endPoint + "/patient";
-				for (String serverAction : patientResourceAction.getActions()) {
-					if (serverAction.equals(Action.UPDATE.name()) || serverAction.equals(Action.SAVE.name())) {
-						if (serverAction.equals(Action.UPDATE.name())) {
-							endPoint += endPoint + "/" + patientResourceAction.getPatientResources().getPerson();
-						}
-						payload = postData(url, user, pass, endPoint, Tools.objectToString(patientResourceAction.getPatientResources()));
-					} else {
-						payload = deleteData(url, user, pass, endPoint, patientResourceAction.getPatientResources().getPerson().getUuid());
-					}
-				}
-			}
-
-			for (EncounterResourceAction encounterResourceAction : data.getEncounterResourceActions()) {
-				endPoint += endPoint + "/encounter";
-				for (String serverAction : encounterResourceAction.getActions()) {
-					if (serverAction.equals(Action.UPDATE.name()) || serverAction.equals(Action.SAVE.name())) {
-						if (serverAction.equals(Action.UPDATE.name())) {
-							endPoint += endPoint + "/" + encounterResourceAction.getEncounterResource().getUuid();
-						}
-						payload = postData(url, user, pass, endPoint, Tools.objectToString(encounterResourceAction.getEncounterResource()));
-					} else {
-						payload = deleteData(url, user, pass, endPoint, encounterResourceAction.getEncounterResource().getUuid());
-					}
-				}
-			}
-
-			for (ObsResourceAction obsResourceAction : data.getObsResourceActions()) {
-				endPoint += endPoint + "/obs";
-				for (String serverAction : obsResourceAction.getActions()) {
-					if (serverAction.equals(Action.UPDATE.name()) || serverAction.equals(Action.SAVE.name())) {
-						if (serverAction.equals(Action.UPDATE.name())) {
-							endPoint += endPoint + "/" + obsResourceAction.getObsResource().getUuid();
-						}
-						payload = postData(url, user, pass, endPoint, Tools.objectToString(obsResourceAction.getObsResource()));
-					} else {
-						payload = deleteData(url, user, pass, endPoint, obsResourceAction.getObsResource().getUuid());
-					}
-				}
-			}
-		}
-
-		return payload;
+		return "";
 	}
 
 	@Override
@@ -1078,10 +758,10 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 			Header bsPost = new BasicScheme().authenticate(creds, httpPost, localContext);
 			httpPost.addHeader("Authorization", bsPost.getValue());
-			httpPost.addHeader("Content-Type", "application/json");
+			httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
 			httpPost.addHeader("Accept", "application/json");
 
-			httpPost.setEntity(new StringEntity(data));
+			httpPost.setEntity(new StringEntity(data, "UTF-8"));
 
 			HttpResponse response = client.execute(targetHost, httpPost, localContext);
 			HttpEntity entity = response.getEntity();
@@ -1125,6 +805,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 			HttpDelete httpDelete = new HttpDelete(serverUrl + Tools.WS_REST_V1 + endPoint + "/" + resourceUuid);
 			System.out.println("Delete Resource link : " + serverUrl.toString() + Tools.WS_REST_V1 + endPoint + "/"  + resourceUuid);
+
 			Header bsDelete = new BasicScheme().authenticate(creds, httpDelete, localContext);
 			httpDelete.addHeader("Authorization", bsDelete.getValue());
 
@@ -1306,13 +987,14 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 	@Override
 	public List<Patient> getPatientDeathWithNoCauseOfDeath() {
-		return (List<Patient>) sessionFactory.getCurrentSession().createQuery("SELECT p FROM Patient p WHERE p.patientId IN (SELECT pn.personId FROM Person pn WHERE pn.dead = true AND pn.causeOfDeath IS NULL) AND p.patientId NOT IN (SELECT u.person.personId FROM User u)").list();
+//		return (List<Patient>) sessionFactory.getCurrentSession().createQuery("SELECT p FROM Patient p WHERE p.patientId IN (SELECT pn.personId FROM Person pn WHERE pn.dead = true AND pn.causeOfDeath IS NULL) AND p.patientId NOT IN (SELECT u.person.personId FROM User u)").list();
+		return new ArrayList<Patient>();
 	}
 
 	@Override
 	public List<Patient> getPatentWithNonUniqueIdentifier() {
 		return (List<Patient>) sessionFactory.getCurrentSession().createQuery("" +
-				"SELECT p FROM Patient p, PatientIdentifier pi WHERE p.patientId = pi.patient.patientId AND identifier IN (SELECT pi2.identifier FROM PatientIdentifier pi2 WHERE pi2.voided = 0 GROUP BY pi2.identifier HAVING COUNT(pi2.patient) > 1) AND p.patientId NOT IN (SELECT u.person.personId FROM User u)").list();
+				"SELECT p FROM Patient p, PatientIdentifier pi WHERE p.patientId = pi.patient.patientId AND identifier IN (SELECT pi2.identifier FROM PatientIdentifier pi2 WHERE pi2.patient.voided = 0 GROUP BY pi2.identifier HAVING COUNT(pi2.patient) > 1) AND p.patientId NOT IN (SELECT u.person.personId FROM User u)").list();
 	}
 
 	@Override
@@ -1344,7 +1026,8 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 		params.put("patient", patientUuid);
 		params.put("encounterType", "8d5b27bc-c2cc-11de-8d13-0010c6dffd0f");
 		params.put("v", "default");
-		String resourceResult = getResourceFromRemote(server.getServerUrl(), server.getUsername(), server.getPassword(), params, Tools.WS_REST_V1 + "/encounter");
+		String resourceResult = getResourceFromRemote(server.getServerUrl(), server.getUsername(),
+				server.getPassword(), params, Tools.WS_REST_V1 + "/encounter");
 		JsonNode resultNode = Json.parse(resourceResult);
 		EncounterResourceResult encounterResourceResult = Json.fromJson(resultNode, EncounterResourceResult.class);
 		EncounterResult encounterResult = new EncounterResult();

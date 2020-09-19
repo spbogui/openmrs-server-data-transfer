@@ -77,4 +77,50 @@
         </sql>
     </changeSet>
 
+    <changeSet id="server-data-transfer-update-concept-uuid" author="BOGUI SERGE">
+        <sql>
+            <![CDATA[
+            UPDATE concept SET uuid = '023b8fb0-492b-474a-8d38-2d3b4c5299cb' WHERE concept_id = 165010 AND uuid <> '023b8fb0-492b-474a-8d38-2d3b4c5299cb';
+            UPDATE concept SET uuid = '6ec1490b-e0b0-41f1-aca6-29e83f3e5fd4' WHERE concept_id = 165011 AND uuid <> '6ec1490b-e0b0-41f1-aca6-29e83f3e5fd4';
+            UPDATE concept SET uuid = '700ac483-773e-4cdf-8f31-a40bee061eb3' WHERE concept_id = 165012 AND uuid <> '700ac483-773e-4cdf-8f31-a40bee061eb3';
+            UPDATE concept SET uuid = '1b812e78-6732-4261-af13-0714ec4c8000' WHERE concept_id = 165013 AND uuid <> '1b812e78-6732-4261-af13-0714ec4c8000';
+            UPDATE concept SET uuid = '357d986a-48da-4461-93b8-e7cb00d3de5b' WHERE concept_id = 165014 AND uuid <> '357d986a-48da-4461-93b8-e7cb00d3de5b';
+            UPDATE concept SET uuid = '75bed8a5-b844-478c-a78e-5ef230f80992' WHERE concept_id = 165015 AND uuid <> '75bed8a5-b844-478c-a78e-5ef230f80992';
+            UPDATE concept SET uuid = 'ace576f8-88f7-49d2-83ec-1af1bce17eb9' WHERE concept_id = 165016 AND uuid <> 'ace576f8-88f7-49d2-83ec-1af1bce17eb9';
+            UPDATE concept SET uuid = '4319154f-3d56-445c-8638-63255d2ffd5c' WHERE concept_id = 165017 AND uuid <> '4319154f-3d56-445c-8638-63255d2ffd5c';
+            UPDATE concept SET uuid = 'f50cfdc0-2d10-4474-94a4-6b329d5c41be' WHERE concept_id = 165018 AND uuid <> 'f50cfdc0-2d10-4474-94a4-6b329d5c41be';
+            UPDATE concept SET uuid = 'ff4dd93c-5235-4e36-9a7f-f184fe0a9614' WHERE concept_id = 165019 AND uuid <> 'ff4dd93c-5235-4e36-9a7f-f184fe0a9614';
+            UPDATE concept SET uuid = 'c62af65c-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165020 AND uuid <> 'c62af65c-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = 'c6615e42-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165021 AND uuid <> 'c6615e42-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = 'c672f0d4-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165022 AND uuid <> 'c672f0d4-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = 'c67fe577-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165023 AND uuid <> 'c67fe577-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = 'c68cb7d2-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165024 AND uuid <> 'c68cb7d2-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = 'c6942190-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165025 AND uuid <> 'c6942190-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = 'c69beebe-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165026 AND uuid <> 'c69beebe-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = 'c6b67cb1-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165027 AND uuid <> 'c6b67cb1-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = 'c6be0143-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165028 AND uuid <> 'c6be0143-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = 'c6c5b7d4-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165029 AND uuid <> 'c6c5b7d4-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = 'c6d00e57-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165030 AND uuid <> 'c6d00e57-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = 'c6d79bf4-51bf-11e7-ad2e-480fcf54dcbd' WHERE concept_id = 165031 AND uuid <> 'c6d79bf4-51bf-11e7-ad2e-480fcf54dcbd';
+            UPDATE concept SET uuid = '1620224a-584c-11e7-8e01-00ff7b3c220b' WHERE concept_id = 165032 AND uuid <> '1620224a-584c-11e7-8e01-00ff7b3c220b';
+            UPDATE concept SET uuid = '7eecca15-d800-11e7-b45b-080027e9631b' WHERE concept_id = 165033 AND uuid <> '7eecca15-d800-11e7-b45b-080027e9631b';
+            UPDATE concept SET uuid = '7ef25768-d800-11e7-b45b-080027e9631b' WHERE concept_id = 165034 AND uuid <> '7ef25768-d800-11e7-b45b-080027e9631b';
+            UPDATE concept SET uuid = '7ed44d78-d800-11e7-b45b-080027e9631b' WHERE concept_id = 165035 AND uuid <> '7ed44d78-d800-11e7-b45b-080027e9631b';
+            UPDATE concept SET uuid = '7ed6ab7c-d800-11e7-b45b-080027e9631b' WHERE concept_id = 165036 AND uuid <> '7ed6ab7c-d800-11e7-b45b-080027e9631b';
+            UPDATE concept SET uuid = '7ed8ceca-d800-11e7-b45b-080027e9631b' WHERE concept_id = 165037 AND uuid <> '7ed8ceca-d800-11e7-b45b-080027e9631b';
+            UPDATE concept SET uuid = 'ae789dd9-766d-11e9-9626-080027cda0a3' WHERE concept_id = 165038 AND uuid <> 'ae789dd9-766d-11e9-9626-080027cda0a3';
+            UPDATE concept SET uuid = 'da4c3692-f6a1-11ea-b407-080027cda0a3' WHERE concept_id = 165039 AND uuid <> 'da4c3692-f6a1-11ea-b407-080027cda0a3';
+            UPDATE concept SET uuid = 'ec99895a-f73b-11ea-b407-080027cda0a3' WHERE concept_id = 165040 AND uuid <> 'ec99895a-f73b-11ea-b407-080027cda0a3';
+            UPDATE concept SET uuid = 'da5b12ae-f6a1-11ea-b407-080027cda0a3' WHERE concept_id = 165041 AND uuid <> 'da5b12ae-f6a1-11ea-b407-080027cda0a3';
+            UPDATE concept SET uuid = 'da66b99e-f6a1-11ea-b407-080027cda0a3' WHERE concept_id = 165042 AND uuid <> 'da66b99e-f6a1-11ea-b407-080027cda0a3';
+            UPDATE concept SET uuid = 'da7423c5-f6a1-11ea-b407-080027cda0a3' WHERE concept_id = 165043 AND uuid <> 'da7423c5-f6a1-11ea-b407-080027cda0a3';
+            ]]>
+        </sql>
+    </changeSet>
+    <changeSet id="server-data-transfer-update-feedback-field-2020-09-15" author="BOGUI SERGE">
+        <sql>
+            ALTER TABLE server_transfer_data_transfer MODIFY COLUMN transfer_feedback TEXT;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

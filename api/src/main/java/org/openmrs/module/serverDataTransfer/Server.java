@@ -98,12 +98,13 @@ public class Server implements Serializable {
     }
 
     public String getPassword() {
-//        return Security.decrypt(password);
+        if (password != null && !password.isEmpty())
+            return Security.decrypt(password);
         return password;
     }
 
     public void setPassword(String password) {
-        this.password = password;
-//        this.password = Security.encrypt(password);
+        if (password != null)
+            this.password = Security.encrypt(password);
     }
 }
