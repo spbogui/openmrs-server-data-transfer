@@ -53,7 +53,7 @@ public interface ServerDataTransferDAO {
 	List<ServerDataTransfer> getAllServerDataTransferredByServer(Integer serverId);
 	ServerDataTransfer getOneServerData(Integer serverDataId);
 
-    boolean transferData(Server server, String endPoint, ServerDataTransfer data) throws IOException;
+    boolean transferData(Server server, String endPoint, ServerDataTransfer data) throws IOException, IllegalAccessException;
 
     String postDataToServer(Server server, String endPoint, DataTransferResourceModel data);
 

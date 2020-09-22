@@ -7,6 +7,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openmrs.module.serverDataTransfer.Server;
+import org.openmrs.module.serverDataTransfer.errors.EncounterError;
+import org.openmrs.module.serverDataTransfer.errors.ObsError;
+import org.openmrs.module.serverDataTransfer.errors.PatientError;
 
 import java.io.*;
 import java.net.*;
@@ -158,6 +161,18 @@ public class Tools {
         }
 
         return exportSummary;
+    }
+
+    public static ObsError stringToExportObsError(String json) throws IOException {
+        return Json.fromJson(Json.parse(json), ObsError.class);
+    }
+
+    public static EncounterError stringToExportEncounterError(String json) throws IOException {
+        return Json.fromJson(Json.parse(json), EncounterError.class);
+    }
+
+    public static PatientError stringToExportPatientError(String json) throws IOException {
+        return Json.fromJson(Json.parse(json), PatientError.class);
     }
 
     public static boolean netIsAvailable(Server server) {

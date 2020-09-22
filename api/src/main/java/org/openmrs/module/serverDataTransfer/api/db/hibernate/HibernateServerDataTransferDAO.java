@@ -13,10 +13,7 @@
  */
 package org.openmrs.module.serverDataTransfer.api.db.hibernate;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -44,6 +41,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.serverDataTransfer.Server;
 import org.openmrs.module.serverDataTransfer.ServerDataTransfer;
 import org.openmrs.module.serverDataTransfer.api.db.ServerDataTransferDAO;
+import org.openmrs.module.serverDataTransfer.errors.*;
 import org.openmrs.module.serverDataTransfer.utils.*;
 import org.openmrs.module.serverDataTransfer.utils.actions.*;
 import org.openmrs.module.serverDataTransfer.utils.enums.Action;
@@ -54,13 +52,11 @@ import org.openmrs.module.serverDataTransfer.utils.resourcesResult.EncounterResu
 import org.openmrs.module.serverDataTransfer.utils.resourcesResult.PatientResult;
 import org.openmrs.notification.Alert;
 import org.openmrs.notification.AlertRecipient;
-import org.openmrs.util.OpenmrsConstants;
-import org.openmrs.util.Security;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -370,10 +366,11 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 	}
 
 	@Override
-	public boolean transferData(Server server, String endPoint, ServerDataTransfer serverDataTransfer) throws IOException {
+	public boolean transferData(Server server, String endPoint, ServerDataTransfer serverDataTransfer) throws IOException, IllegalAccessException {
 		String url = server.getServerUrl();
 		String user = server.getUsername();
 		String pass = server.getPassword();
+		String resourceImported = "";
 
 		if (!testServerDetails(url, user, pass)) {
 			return false;
@@ -387,291 +384,299 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 		String info = "";
 
 		StringBuilder restLink;
-		int count = 0;
 
 		if (data != null) {
+			int count = 0;
 			System.out.println("-------------- Resource to insert size : " + data.getResourceSize());
 
 			Set<PersonAction> personActions = new HashSet<PersonAction>(data.getPersonActions());
 			Set<EncounterAction> encounterActions = new HashSet<EncounterAction>(data.getEncounterActions());
 			Set<ObsAction> obsActions = new HashSet<ObsAction>(data.getObsActions());
 
-			System.out.println("-------------------------------- Exporting person info ----------------------------- ");
+			if (personActions.size() != 0) {
+				resourceImported = "patient";
+				System.out.println("-------------------------------- Exporting person info ----------------------------- ");
+				for (PersonAction personAction : personActions) {
 
-			for (PersonAction personAction : personActions) {
+					count++;
 
-				count++;
+					// System.out.println("Person uuid : " + personAction.getPersonUuid());
+					Person person = Context.getPersonService().getPersonByUuid(personAction.getPersonUuid());
+					Patient patient = Context.getPatientService().getPatient(person.getPersonId());
 
-				// System.out.println("Person uuid : " + personAction.getPersonUuid());
-				Person person = Context.getPersonService().getPersonByUuid(personAction.getPersonUuid());
-				Patient patient = Context.getPatientService().getPatient(person.getPersonId());
-
-				String personInfo = person.getPersonName() + " Gender : " + person.getGender();
-				personInfo +=  ", identifier : '"+patient.getPatientIdentifier();
-				if (person.getBirthdate() != null) {
-					personInfo += "', birth date : " + Tools.formatDateToString(person.getBirthdate(), "dd/MM/yyyy");
-				} else {
-					personInfo += "', birth date : No birth date";
-				}
-				if (patient.getPatientIdentifier() != null) {
-					System.out.println("Current patient id : " + patient.getPatientIdentifier().getIdentifier());
-					// getResource(url, user, pass, "/patient", person.getUuid());
-					List<PatientResult> patientResult = findPatientOnServer(patient.getPatientIdentifier().getIdentifier(), server);
-					if (patientResult != null && patientResult.size() != 0) {
-						if (!patient.getUuid().equals(patientResult.get(0).getUuid())) {
-							canContinue = false;
-							info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending name for [ "+ personInfo + "] on server  :  \n[Un autre patient possède le même identifiant sur le serveur." +
-									"Click here to <a class=\"button\" href=\"/module/serverDataTransfer/transfer.form?identifier="+ patient.getPatientIdentifier().getIdentifier() + "\">Importer les informations du patients pour continuer</a>]"  ;
-							break;
-						}
+					String personInfo = person.getPersonName() + " Gender : " + person.getGender();
+					personInfo +=  ", identifier : '"+patient.getPatientIdentifier();
+					if (person.getBirthdate() != null) {
+						personInfo += "', birth date : " + Tools.formatDateToString(person.getBirthdate(), "dd/MM/yyyy");
+					} else {
+						personInfo += "', birth date : No birth date";
 					}
-				} else {
-					System.out.println("Current patient with identifier not checked : " + personInfo + " Person id : " + patient.getPatientId());
+					if (patient.getPatientIdentifier() != null) {
+						System.out.println("Current patient id : " + patient.getPatientIdentifier().getIdentifier());
+						// getResource(url, user, pass, "/patient", person.getUuid());
+						List<PatientResult> patientResult = findPatientOnServer(patient.getPatientIdentifier().getIdentifier(), server);
+						if (patientResult != null && patientResult.size() != 0) {
+							if (!patient.getUuid().equals(patientResult.get(0).getUuid())) {
+								canContinue = false;
+								info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending name for [ "+ personInfo + "] on server  :  \n[Un autre patient possède le même identifiant sur le serveur." +
+										"Click here to <a class=\"button\" href=\"/module/serverDataTransfer/transfer.form?identifier="+ patient.getPatientIdentifier().getIdentifier() + "\">Importer les informations du patients pour continuer</a>]"  ;
+								break;
+							}
+						}
+					} else {
+						System.out.println("Current patient with identifier not checked : " + personInfo + " Person id : " + patient.getPatientId());
 //					break;
-				}
+					}
 
-				restLink = new StringBuilder(endPoint + "/patient");
+					restLink = new StringBuilder(endPoint + "/patient");
 
-				if (canContinue && !getResource(url, user, pass, restLink.toString(), personAction.getPersonUuid()).contains("error")) {
+					if (canContinue && !getResource(url, user, pass, restLink.toString(), personAction.getPersonUuid()).contains("error")) {
 //					System.out.println("--------------------------PATIENT UPDATE--------------------------");
 
-					if (person.getVoided()) {
-						payload = deleteData(url, user, pass, restLink.toString(), personAction.getPersonUuid());
+						if (person.getVoided()) {
+							payload = deleteData(url, user, pass, restLink.toString(), personAction.getPersonUuid());
 
-						if (payload.contains("error")) {
-							// System.out.println("Payload person for [" + personAction.getPersonUuid() + "] " + Action.DELETE.name() + " : " + payload);
-							info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on voiding info for [ "+ personInfo + "] in server  : ";
-							canContinue = false;
-							break;
-						}
-						payload = "";
-					} else {
-						// Updating person
-						String personLink = endPoint + "/person/" + personAction.getPersonUuid();
-						payload = postData(url, user, pass, personLink, Tools.objectToString(new PersonResourceUpdate().setPerson(person)));
-						if (payload.contains("error")) {
-							// System.out.println("Payload person [" + personAction.getPersonUuid() + "] for " + Action.UPDATE.name() + " : " + payload);
-							info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending [ "+ personInfo + "] on server  : ";
-							canContinue = false;
-						}
-
-						if (canContinue) {
-							for (PersonName personName : person.getNames()) {
-
-								String nameLink = personLink + "/name";
-								if (!getResource(url, user, pass, nameLink, personName.getUuid()).contains("error")) {
-									nameLink += "/" + personName.getUuid();
-								}
-								// System.out.println("Name link : " + nameLink);
-								payload = postData(url, user, pass, nameLink, Tools.objectToString(new NameResource().setPersonName(personName)));
-								// System.out.println("Exporting person to save or update name with identifier : " + patient.getPatientIdentifier());
-
-								if (payload.contains("error")) {
-									// System.out.println("Payload name for " + Action.UPDATE.name() + " : " + payload);
-									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending name for [ "+ personInfo + "] on server  : ";
-									canContinue = false;
-									break;
-								}
-								payload = "";
-							}
-						}
-						if (canContinue) {
-							for (PersonAddress personAddress : person.getAddresses()) {
-								String addressLink = personLink + "/address";
-								// System.out.println("Exporting person to save or update address with identifier : " + patient.getPatientIdentifier());
-
-								if (!getResource(url, user, pass, addressLink, personAddress.getUuid()).contains("error")) {
-									addressLink += "/" + personAddress.getUuid();
-									payload = postData(url, user, pass, addressLink, Tools.objectToString(new AddressResource().setPersonAddress(personAddress)));
-								} else {
-									payload = postData(url, user, pass, addressLink, Tools.objectToString(new AddressResource().setPersonAddress(personAddress)));
-								}
-								if (payload.contains("error")) {
-									System.out.println("Payload address for [" + personAddress.getUuid() + "] : " + payload);
-									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending address for [ "+ personInfo + "] in server  : ";
-									canContinue = false;
-									break;
-								}
-								payload = "";
-							}
-
-						}
-						if (canContinue) {
-							for (PersonAttribute personAttribute : person.getAttributes()) {
-								// System.out.println("Exporting person to save or update attribute with identifier : " + patient.getPatientIdentifier());
-
-								String attributeLink = personLink + "/attribute";
-								if (!getResource(url, user, pass, attributeLink, personAttribute.getUuid()).contains("error")) {
-									attributeLink += "/" + personAttribute.getUuid();
-									payload = postData(url, user, pass, attributeLink, Tools.objectToString(new AttributeResource().setPersonAttribute(personAttribute)));
-								} else {
-									payload = postData(url, user, pass, attributeLink, Tools.objectToString(new AttributeResource().setPersonAttribute(personAttribute)));
-								}
-								System.out.println("Attribute link : " + attributeLink);
-
-								if (payload.contains("error")) {
-									System.out.println("Payload attribute for [" + personAttribute.getUuid() + "] : " + payload);
-									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending attribute for [ "+ personInfo + "] on server  : ";
-									canContinue = false;
-									break;
-								}
-								payload = "";
-							}
-						}
-						if (canContinue) {
-							restLink = new StringBuilder(endPoint + "/patient/" + personAction.getPersonUuid() + "/identifier");
-							for (PatientIdentifier identifier: patient.getIdentifiers()) {
-								String idLink = restLink.toString();
-								if (!getResource(url, user, pass, restLink.toString(), identifier.getUuid()).contains("error")) {
-									idLink += "/" + identifier.getUuid();
-								}
-								payload = postData(url, user, pass, idLink, Tools.objectToString(new IdentifierResource().setIdentifier(identifier)));
-
-								if (payload.contains("error")) {
-									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on updating patient with identifier [ " + patient.getPatientIdentifier() + "] on server  : ";
-									canContinue = false;
-									break;
-								}
-								payload = "";
-							}
-						}
-					}
-
-				} else {
-					if (canContinue && !person.getVoided()) {
-//						System.out.println("--------------------------PATIENT CREATE--------------------------");
-						restLink = new StringBuilder(endPoint + "/patient");
-						payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new PatientResource().setPatient(patient)));
-						// System.out.println("Exporting person to save peron with identifier : " + patient.getPatientIdentifier());
-						if (payload.contains("error")) {
-							info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person ["+ personInfo + "] in server : ";
-							// System.out.println(Json.prettyPrint(Json.toJson(patient)));
-							canContinue = false;
-							break;
-						}
-
-						if (person.getAddresses().size() != 0) {
-							String addressLink = endPoint + "/person/" + person.getUuid() + "/address";
-							payload = postData(url, user, pass, addressLink, Tools.objectToString(new AddressResource().setPersonAddress(person.getPersonAddress())));
 							if (payload.contains("error")) {
-								info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person address ["+ personInfo + "] in server : ";
+								// System.out.println("Payload person for [" + personAction.getPersonUuid() + "] " + Action.DELETE.name() + " : " + payload);
+								info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on voiding info for [ "+ personInfo + "] in server  : ";
 								canContinue = false;
 								break;
 							}
-						}
-
-						if (person.getAttributes().size() != 0) {
-							String addressLink = endPoint + "/person/" + person.getUuid() + "/attribute";
-							for (PersonAttribute personAttribute : person.getAttributes()) {
-								payload = postData(url, user, pass, addressLink, Tools.objectToString(new AttributeResource().setPersonAttribute(personAttribute)));
-								if (payload.contains("error")) {
-									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person attribute [" + personInfo + "] in server : ";
-									canContinue = false;
-									break;
-								}
-							}
-						}
-
-						payload = "";
-					}
-				}
-				if (canContinue) {
-					data.getPersonActions().remove(personAction);
-				}
-			}
-
-			if (canContinue) {
-				count = 0;
-				System.out.println("-------------------------------- Adding Encounters ----------------------------- ");
-
-				for (EncounterAction encounterAction : encounterActions) {
-					count++;
-					restLink = new StringBuilder(endPoint + "/encounter");
-					Encounter encounter = Context.getEncounterService().getEncounterByUuid(encounterAction.getEncounterUuid());
-					System.out.println("--------------------------------" + encounter.getEncounterType().getName() + "----------------------------- " + count);
-					if (!getResource(url, user, pass, restLink.toString(), encounter.getUuid()).contains("error")) {
-						if (encounter.getVoided()) {
-							payload = deleteData(url, user, pass, restLink.toString(), encounterAction.getEncounterUuid());
-							if (payload.contains("error")) {
-								info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on deleting encounter [" + encounter .getEncounterType().getName()
-										+ "] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
-										+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
-								canContinue = false;
-								break;
-							}
+							payload = "";
 						} else {
-							restLink.append("/").append(encounterAction.getEncounterUuid());
-							payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new EncounterResource().setEncounter(encounter)));
+							// Updating person
+							String personLink = endPoint + "/person/" + personAction.getPersonUuid();
+							payload = postData(url, user, pass, personLink, Tools.objectToString(new PersonResourceUpdate().setPerson(person)));
 							if (payload.contains("error")) {
-								info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on updating encounter [" + encounter .getEncounterType().getName()
-										+ "] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
-										+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
+								// System.out.println("Payload person [" + personAction.getPersonUuid() + "] for " + Action.UPDATE.name() + " : " + payload);
+								info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending [ "+ personInfo + "] on server  : ";
 								canContinue = false;
-								break;
+							}
+
+							if (canContinue) {
+								for (PersonName personName : person.getNames()) {
+
+									String nameLink = personLink + "/name";
+									if (!getResource(url, user, pass, nameLink, personName.getUuid()).contains("error")) {
+										nameLink += "/" + personName.getUuid();
+									}
+									// System.out.println("Name link : " + nameLink);
+									payload = postData(url, user, pass, nameLink, Tools.objectToString(new NameResource().setPersonName(personName)));
+									// System.out.println("Exporting person to save or update name with identifier : " + patient.getPatientIdentifier());
+
+									if (payload.contains("error")) {
+										// System.out.println("Payload name for " + Action.UPDATE.name() + " : " + payload);
+										info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending name for [ "+ personInfo + "] on server  : ";
+										canContinue = false;
+										break;
+									}
+									payload = "";
+								}
+							}
+
+							if (canContinue) {
+								for (PersonAddress personAddress : person.getAddresses()) {
+									String addressLink = personLink + "/address";
+									// System.out.println("Exporting person to save or update address with identifier : " + patient.getPatientIdentifier());
+
+									if (!getResource(url, user, pass, addressLink, personAddress.getUuid()).contains("error")) {
+										addressLink += "/" + personAddress.getUuid();
+										payload = postData(url, user, pass, addressLink, Tools.objectToString(new AddressResource().setPersonAddress(personAddress)));
+									} else {
+										payload = postData(url, user, pass, addressLink, Tools.objectToString(new AddressResource().setPersonAddress(personAddress)));
+									}
+									if (payload.contains("error")) {
+										System.out.println("Payload address for [" + personAddress.getUuid() + "] : " + payload);
+										info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending address for [ "+ personInfo + "] in server  : ";
+										canContinue = false;
+										break;
+									}
+									payload = "";
+								}
+							}
+							if (canContinue) {
+								for (PersonAttribute personAttribute : person.getAttributes()) {
+									// System.out.println("Exporting person to save or update attribute with identifier : " + patient.getPatientIdentifier());
+
+									String attributeLink = personLink + "/attribute";
+									if (!getResource(url, user, pass, attributeLink, personAttribute.getUuid()).contains("error")) {
+										attributeLink += "/" + personAttribute.getUuid();
+										payload = postData(url, user, pass, attributeLink, Tools.objectToString(new AttributeResource().setPersonAttribute(personAttribute)));
+									} else {
+										payload = postData(url, user, pass, attributeLink, Tools.objectToString(new AttributeResource().setPersonAttribute(personAttribute)));
+									}
+									System.out.println("Attribute link : " + attributeLink);
+
+									if (payload.contains("error")) {
+										System.out.println("Payload attribute for [" + personAttribute.getUuid() + "] : " + payload);
+										info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending attribute for [ "+ personInfo + "] on server  : ";
+										canContinue = false;
+										break;
+									}
+									payload = "";
+								}
+							}
+							if (canContinue) {
+								restLink = new StringBuilder(endPoint + "/patient/" + personAction.getPersonUuid() + "/identifier");
+								for (PatientIdentifier identifier: patient.getIdentifiers()) {
+									String idLink = restLink.toString();
+									if (!getResource(url, user, pass, restLink.toString(), identifier.getUuid()).contains("error")) {
+										idLink += "/" + identifier.getUuid();
+									}
+									payload = postData(url, user, pass, idLink, Tools.objectToString(new IdentifierResource().setIdentifier(identifier)));
+
+									if (payload.contains("error")) {
+										info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on updating patient with identifier [ " + patient.getPatientIdentifier() + "] on server  : ";
+										canContinue = false;
+										break;
+									}
+									payload = "";
+								}
 							}
 						}
+
 					} else {
-						if (!encounter.getVoided()) {
-							payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new EncounterResource().setEncounter(encounter)));
+						if (canContinue && !person.getVoided()) {
+//						System.out.println("--------------------------PATIENT CREATE--------------------------");
+							restLink = new StringBuilder(endPoint + "/patient");
+							payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new PatientResource().setPatient(patient)));
+							// System.out.println("Exporting person to save peron with identifier : " + patient.getPatientIdentifier());
 							if (payload.contains("error")) {
-								info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on saving encounter [" + encounter.getEncounterType().getName() +
-										"] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
-										+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
+								info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person ["+ personInfo + "] in server : ";
+								// System.out.println(Json.prettyPrint(Json.toJson(patient)));
 								canContinue = false;
 								break;
 							}
+
+							if (person.getAddresses().size() != 0) {
+								String addressLink = endPoint + "/person/" + person.getUuid() + "/address";
+								payload = postData(url, user, pass, addressLink, Tools.objectToString(new AddressResource().setPersonAddress(person.getPersonAddress())));
+								if (payload.contains("error")) {
+									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person address ["+ personInfo + "] in server : ";
+									canContinue = false;
+									break;
+								}
+							}
+
+							if (person.getAttributes().size() != 0) {
+								String addressLink = endPoint + "/person/" + person.getUuid() + "/attribute";
+								for (PersonAttribute personAttribute : person.getAttributes()) {
+									payload = postData(url, user, pass, addressLink, Tools.objectToString(new AttributeResource().setPersonAttribute(personAttribute)));
+									if (payload.contains("error")) {
+										info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person attribute [" + personInfo + "] in server : ";
+										canContinue = false;
+										break;
+									}
+								}
+							}
+
+							payload = "";
 						}
 					}
-					payload = "";
-					data.getEncounterActions().remove(encounterAction);
+					if (canContinue) {
+						data.getPersonActions().remove(personAction);
+					}
 				}
 			}
 
 			if (canContinue) {
-				count = 0;
-				System.out.println("-------------------------------- Sending Obs informations ----------------------------- ");
-
-				for (ObsAction obsAction : obsActions) {
-					count++;
-
-					restLink = new StringBuilder(endPoint + "/obs");
-					Obs obs = Context.getObsService().getObsByUuid(obsAction.getObs());
-					if (obs != null) {
-						ObsResource obsResource = new ObsResource().setObs(obs);
-						if (!obsResource.getValue().isEmpty()) {
-							if (!getResource(url, user, pass, endPoint + "/obs", obs.getUuid()).contains("error")) {
-								if (obs.getVoided()) {
-									payload = deleteData(url, user, pass, restLink.toString(), obs.getUuid());
-									if (payload.contains("error")) {
-//								System.out.println("Payload obs for " + serverAction + " : " + payload);
-										info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on sending obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
-										canContinue = false;
-										break;
-									}
-								} else {
-									restLink.append("/").append(obsAction.getObs());
-									payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(obsResource));
-									if (payload.contains("error")) {
-										info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on updating obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
-										canContinue = false;
-										break;
-									}
+				if (encounterActions.size() != 0) {
+					count = 0;
+					resourceImported = "encounter";
+					System.out.println("-------------------------------- Adding Encounters ----------------------------- ");
+					for (EncounterAction encounterAction : encounterActions) {
+						count++;
+						restLink = new StringBuilder(endPoint + "/encounter");
+						Encounter encounter = Context.getEncounterService().getEncounterByUuid(encounterAction.getEncounterUuid());
+						System.out.println("--------------------------------" + encounter.getEncounterType().getName() + "----------------------------- " + count);
+						if (!getResource(url, user, pass, restLink.toString(), encounter.getUuid()).contains("error")) {
+							if (encounter.getVoided()) {
+								payload = deleteData(url, user, pass, restLink.toString(), encounterAction.getEncounterUuid());
+								if (payload.contains("error")) {
+									info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on deleting encounter [" + encounter .getEncounterType().getName()
+											+ "] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
+											+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
+									canContinue = false;
+									break;
 								}
 							} else {
-								if (!obs.getVoided()) {
-									payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(obsResource));
-									if (payload.contains("error")) {
-										info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on saving obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
-										canContinue = false;
-										break;
-									}
+								restLink.append("/").append(encounterAction.getEncounterUuid());
+								payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new EncounterResource().setEncounter(encounter)));
+								if (payload.contains("error")) {
+									info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on updating encounter [" + encounter .getEncounterType().getName()
+											+ "] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
+											+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
+									canContinue = false;
+									break;
+								}
+							}
+						} else {
+							if (!encounter.getVoided()) {
+								payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new EncounterResource().setEncounter(encounter)));
+								if (payload.contains("error")) {
+									info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on saving encounter [" + encounter.getEncounterType().getName() +
+											"] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
+											+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
+									canContinue = false;
+									break;
 								}
 							}
 						}
 						payload = "";
-						data.getObsActions().remove(obsAction);
+						data.getEncounterActions().remove(encounterAction);
 					}
 				}
+			}
+
+			if (canContinue) {
+				if (obsActions.size() != 0) {
+					resourceImported = "obs";
+					count = 0;
+					System.out.println("-------------------------------- Sending Obs informations ----------------------------- ");
+
+					for (ObsAction obsAction : obsActions) {
+						count++;
+
+						restLink = new StringBuilder(endPoint + "/obs");
+						Obs obs = Context.getObsService().getObsByUuid(obsAction.getObs());
+						if (obs != null) {
+							ObsResource obsResource = new ObsResource().setObs(obs);
+							if (!obsResource.getValue().isEmpty()) {
+								if (!getResource(url, user, pass, endPoint + "/obs", obs.getUuid()).contains("error")) {
+									if (obs.getVoided()) {
+										payload = deleteData(url, user, pass, restLink.toString(), obs.getUuid());
+										if (payload.contains("error")) {
+//								System.out.println("Payload obs for " + serverAction + " : " + payload);
+											info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on sending obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
+											canContinue = false;
+											break;
+										}
+									} else {
+										restLink.append("/").append(obsAction.getObs());
+										payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(obsResource));
+										if (payload.contains("error")) {
+											info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on updating obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
+											canContinue = false;
+											break;
+										}
+									}
+								} else {
+									if (!obs.getVoided()) {
+										payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(obsResource));
+										if (payload.contains("error")) {
+											info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on saving obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
+											canContinue = false;
+											break;
+										}
+									}
+								}
+							}
+							payload = "";
+							data.getObsActions().remove(obsAction);
+						}
+					}
+				}
+
 			}
 
 			String message = "";
@@ -697,10 +702,60 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 				message = info;
 
 				if (!payload.isEmpty()) {
+					if (resourceImported.equals("obs")) {
+						ObsError error = Tools.stringToExportObsError(payload);
+						if (error.getError().getMessage().equals("Invalid Submission")) {
+							ObsFieldError obsFieldError = error.getError().getFieldErrors();
+							Field[] fields = obsFieldError.getClass().getDeclaredFields();
+							for (Field f : fields) {
+								List<ErrorMessage> errorMessages = (List<ErrorMessage>) f.get(obsFieldError);
+								if (errorMessages.size() != 0) {
+									String fieldErrors = "<h3>field " + f.getName() + "</h3><ul>";
+									for (ErrorMessage err : errorMessages) {
+										fieldErrors += "<li>" + err.getMessage() + "</li>";
+									}
+									message += fieldErrors + "<ul><hr>";
+								}
+							}
+						}
+					} else if (resourceImported.equals("encounter")) {
+						EncounterError error = Tools.stringToExportEncounterError(payload);
+						if (error.getError().getMessage().equals("Invalid Submission")) {
+							EncounterFieldError encounterFieldError = error.getError().getFieldErrors();
+							Field[] fields = encounterFieldError.getClass().getDeclaredFields();
+							for (Field f : fields) {
+								List<ErrorMessage> errorMessages = (List<ErrorMessage>) f.get(encounterFieldError);
+								if (errorMessages.size() != 0) {
+									String fieldErrors = "<h3>field " + f.getName() + "</h3><ul>";
+									for (ErrorMessage err : errorMessages) {
+										fieldErrors += "<li>" + err.getMessage() + "</li>";
+									}
+									message += fieldErrors + "<ul><hr>";
+								}
+							}
+						}
+					} else if (resourceImported.equals("patient")){
+						PatientError error = Tools.stringToExportPatientError(payload);
+						if (error.getError().getMessage().equals("Invalid Submission")) {
+							PatientFieldError patientFieldError = error.getError().getFieldErrors();
+							Field[] fields = patientFieldError.getClass().getDeclaredFields();
+							for (Field f : fields) {
+								List<ErrorMessage> errorMessages = (List<ErrorMessage>) f.get(patientFieldError);
+								if (errorMessages.size() != 0) {
+									String fieldErrors = "<h3>field " + f.getName() + "</h3><ul>";
+									for (ErrorMessage err : errorMessages) {
+										fieldErrors += "<li>" + err.getMessage() + "</li>";
+									}
+									message += fieldErrors + "<ul><hr>";
+								}
+							}
+						}
+					}
 					ExportSummary responseError = Tools.stringToExportSummaryError(payload);
 					if (responseError.getError() != null) {
-						message += responseError.getError().getMessage();
-						System.out.println(" DETAILS : " + responseError.getError().getDetail());
+						// message += responseError.getError().getMessage();
+						System.out.println(" Error Message  : " + responseError.getError().getMessage());
+						System.out.println(" Error Details : " + responseError.getError().getDetail());
 					}
 				}
 			}
@@ -833,6 +888,9 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 		DefaultHttpClient client = null;
 		String payload = "";
+
+//		if (testServerDetails(url, user, pass))
+//			return "{\"error\":{\"message\": \"Error de connexion au serveur\"}}";
 
 		HttpParams params = new BasicHttpParams();;
 //		params.setParameter("identifier", "4370/OP/09/00079");
