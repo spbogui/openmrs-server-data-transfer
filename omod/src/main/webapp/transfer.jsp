@@ -90,7 +90,7 @@
                                 ${server.dateCreated}
                         </td>
                         <td>${server.status}</td>
-                        <td><fmt:formatDate type="both" value="${server.transferDate}" pattern="dd/MM/yyyy 'à' HH:mm:ss"/></td>
+                        <td><fmt:formatDate type="both" value="${server.transferDate}" pattern="dd/MM/yyyy '&agrave;' HH:mm:ss"/></td>
                         <td>${server.transferFeedback}</td>
                     </tr>
                 </c:forEach>
@@ -109,7 +109,7 @@
                     <c:forEach var="p" items="${ patientsWithoutName }">
                         <tr>
                             <td>
-                                <c:url value="/patientDashboard.form" var="urlName">
+                                <c:url value="/admin/patients/patient.form" var="urlName">
                                     <c:param name="patientId" value="${p.patientId}"/>
                                 </c:url>
                                 <a href="${ urlName }">
@@ -133,7 +133,7 @@
                     <c:forEach var="p" items="${ patientsWithoutGender }">
                         <tr>
                             <td>
-                                <c:url value="/patientDashboard.form" var="urlGender">
+                                <c:url value="/admin/patients/patient.form" var="urlGender">
                                     <c:param name="patientId" value="${p.patientId}"/>
                                 </c:url>
                                 <a href="${ urlGender }">
@@ -156,7 +156,7 @@
                     <c:forEach var="p" items="${ patientsWithoutBirthDate }">
                         <tr>
                             <td>
-                                <c:url value="/patientDashboard.form" var="urlBirth">
+                                <c:url value="/admin/patients/patient.form" var="urlBirth">
                                     <c:param name="patientId" value="${p.patientId}"/>
                                 </c:url>
                                 <a href="${ urlBirth }">
@@ -179,7 +179,7 @@
                     <c:forEach var="p" items="${ patientsWithoutDeadInfo }">
                         <tr>
                             <td>
-                                <c:url value="/patientDashboard.form" var="urlDeath">
+                                <c:url value="/admin/patients/patient.form" var="urlDeath">
                                     <c:param name="patientId" value="${p.patientId}"/>
                                 </c:url>
                                 <a href="${ urlDeath }">
@@ -195,18 +195,18 @@
                 <table class="dqTable">
                     <thead>
                     <tr>
-                        <th>Ces num&eacute;ros de patients ne sont pas de unique dans votre site. Veuillez en supprimer ou fusionner SVP !</th>
+                        <th>Ces num&eacute;ros de patients ne sont pas uniques sur votre site. Veuillez proc&eacute;der &agrave; une suppression ou &agrave;une fusion SVP !</th>
                     </tr>
                     </thead>
                     <tbody>
                     <c:forEach var="p" items="${ patientsWithoutUniqueIdentifier }">
                         <tr>
                             <td>
-                                <c:url value="/patientDashboard.form" var="urlId">
+                                <c:url value="/admin/patients/patient.form" var="urlId">
                                     <c:param name="patientId" value="${p.patientId}"/>
                                 </c:url>
                                 <a href="${ urlId }">
-                                        ${p.patientIdentifier}
+                                        ${p.patientIdentifier} [${p.personName} - Date de naissance : <c:if test="${p.birthdate != null}"><fmt:formatDate type="both" value="${p.birthdate}" pattern="dd/MM/yyyy"/></c:if><c:if test="${p.birthdate == null}">NR</c:if> , Genre : ${p.gender != null ? p.gender : 'NR'}]
                                 </a>
                             </td>
                         </tr>

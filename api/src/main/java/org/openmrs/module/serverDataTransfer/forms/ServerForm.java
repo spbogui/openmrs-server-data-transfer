@@ -5,7 +5,7 @@ import org.openmrs.module.serverDataTransfer.Server;
 import java.io.Serializable;
 import java.util.UUID;
 
-public class ServerFrom implements Serializable {
+public class ServerForm implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer serverId;
@@ -16,7 +16,7 @@ public class ServerFrom implements Serializable {
     private boolean connected;
     private String uuid = UUID.randomUUID().toString();
 
-    public ServerFrom() {
+    public ServerForm() {
     }
 
     public Integer getServerId() {

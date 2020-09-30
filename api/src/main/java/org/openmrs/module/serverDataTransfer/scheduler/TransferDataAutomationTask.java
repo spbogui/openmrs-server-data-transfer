@@ -45,6 +45,8 @@ public class TransferDataAutomationTask extends AbstractTask {
                                 canContinue = Context.getService(ServerDataTransferService.class).transferData(server, "", data);
                             } catch (IOException e) {
                                 e.printStackTrace();
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
                             }
                             if (!canContinue) {
                                 break;

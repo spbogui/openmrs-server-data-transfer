@@ -123,4 +123,28 @@
         </sql>
     </changeSet>
 
+    <changeSet id="server-data-alert-data-manager-2020-09-24" author="BOGUI SERGE">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="1">SELECT COUNT(*) FROM privilege WHERE privilege = 'Manage Alerts'</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="1">SELECT COUNT(*) FROM role_privilege WHERE role = 'Data Manager' AND privilege = 'Manage Alerts'</sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql>
+            INSERT INTO role_privilege (role, privilege) VALUES ('Data Manager', 'Manage Alerts');
+        </sql>
+    </changeSet>
+
+    <changeSet id="server-data-transfer-capitalize-name-upper-2020-09-30" author="BOGUI SERGE">
+        <sql>
+            <![CDATA[
+            UPDATE person_name SET given_name = CONCAT(UCASE(LEFT(given_name, 1)), SUBSTRING(given_name, 2)) WHERE given_name IS NOT NULL OR given_name <> '';
+            UPDATE person_name SET family_name = CONCAT(UCASE(LEFT(family_name, 1)), SUBSTRING(family_name, 2)) WHERE family_name IS NOT NULL OR family_name <> '';
+            UPDATE person_name SET middle_name = CONCAT(UCASE(LEFT(middle_name, 1)), SUBSTRING(middle_name, 2)) WHERE middle_name IS NOT NULL OR middle_name <> '';
+            ]]>
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

@@ -62,24 +62,28 @@
 <div class="box">
 
     <c:if test="${fct:length(currentIdentifier) == 0 }">
-        <div><h2>Veuillez s&eacute;lectionner un identifiant et cliquer sur Entrer</h2></div>
+        <div><h2 style="text-align: center">Veuillez s&eacute;lectionner un identifiant et cliquer sur Rechercher</h2></div>
     </c:if>
 
     <c:if test="${fct:length(currentIdentifier) != 0 }">
-        <div><h2>${patientInfo} <c:if test="${canTransferIn}">
+        <div>
+            <h2 style="text-align: center">
+                    ${patientInfo}
+                <c:if test="${canTransferIn}">
 
-            <c:url value="/module/serverDataTransfer/patient-info.form" var="urlId">
-                <c:param name="identifier" value="${identifier}"/>
-                <c:param name="serverId" value="${server.serverId}"/>
-                <c:param name="transferIn" value="${identifier}"/>
-            </c:url>
-            <a href="${ urlId }">
-                   Transf&eacute;rer In
-            </a>
-        </c:if></h2></div>
+                <c:url value="/module/serverDataTransfer/patient-info.form" var="urlId">
+                    <c:param name="identifier" value="${currentIdentifier}"/>
+                    <c:param name="serverId" value="${serverId}"/>
+                    <c:param name="transferIn" value="${currentIdentifier}"/>
+                </c:url>
+                <a href="${ urlId }" class="button" onclick="return confirm('Vous &ecirc;tes sur le point de transf&eacute;rer le patient sur votre site. Voulez-vous continuer ?')">
+                       Importer le patient
+                </a>
+                </c:if>
+            </h2>
+        </div>
 
         <c:if test="${patientFound != null }">
-
             <hr>
             <div style="font-size: 15px; width: 60%; margin: 0 auto">
 

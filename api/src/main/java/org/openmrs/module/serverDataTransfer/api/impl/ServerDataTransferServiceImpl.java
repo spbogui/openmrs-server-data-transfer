@@ -122,7 +122,7 @@ public class ServerDataTransferServiceImpl extends BaseOpenmrsService implements
     }
 
     @Override
-    public boolean transferData(Server server, String endPoint, ServerDataTransfer data) throws IOException {
+    public boolean transferData(Server server, String endPoint, ServerDataTransfer data) throws IOException, IllegalAccessException {
         return dao.transferData(server, endPoint, data);
     }
 
@@ -174,6 +174,11 @@ public class ServerDataTransferServiceImpl extends BaseOpenmrsService implements
     @Override
     public List<PatientResult> findPatientOnServer(String identifier, Server server) throws IOException {
         return dao.findPatientOnServer(identifier, server);
+    }
+
+    @Override
+    public Patient findLocalPatientByIdentifier(String identifier) {
+        return dao.findLocalPatientByIdentifier(identifier);
     }
 
     @Override

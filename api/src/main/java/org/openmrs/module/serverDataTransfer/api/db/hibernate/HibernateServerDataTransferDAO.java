@@ -372,11 +372,18 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 		String pass = server.getPassword();
 		String resourceImported = "";
 
+//		ResourceNetworking resource = new ResourceNetworking(url, user, pass);
+
+//		if (!resource.test()) {
+//			return false;
+//		}
+
 		if (!testServerDetails(url, user, pass)) {
 			return false;
 		}
 		serverDataTransfer.setStatus(Status.SENDING.name());
 		createServerData(serverDataTransfer);
+
 		DataTransferModelUUID data = Tools.createDataTransferModelUUIDFromByte(serverDataTransfer.getContent());
 
 		String payload = "";
@@ -405,12 +412,13 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 					Patient patient = Context.getPatientService().getPatient(person.getPersonId());
 
 					String personInfo = person.getPersonName() + " Gender : " + person.getGender();
-					personInfo +=  ", identifier : '"+patient.getPatientIdentifier();
+					personInfo +=  ", identifier : '<a href=\"/openmrs/admin/patients/patient.form?patientId=" + patient.getId() +"\">"+patient.getPatientIdentifier() +"</a>";
 					if (person.getBirthdate() != null) {
 						personInfo += "', birth date : " + Tools.formatDateToString(person.getBirthdate(), "dd/MM/yyyy");
 					} else {
 						personInfo += "', birth date : No birth date";
 					}
+
 					if (patient.getPatientIdentifier() != null) {
 						System.out.println("Current patient id : " + patient.getPatientIdentifier().getIdentifier());
 						// getResource(url, user, pass, "/patient", person.getUuid());
@@ -418,8 +426,9 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 						if (patientResult != null && patientResult.size() != 0) {
 							if (!patient.getUuid().equals(patientResult.get(0).getUuid())) {
 								canContinue = false;
-								info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending name for [ "+ personInfo + "] on server  :  \n[Un autre patient possède le même identifiant sur le serveur." +
-										"Click here to <a class=\"button\" href=\"/module/serverDataTransfer/transfer.form?identifier="+ patient.getPatientIdentifier().getIdentifier() + "\">Importer les informations du patients pour continuer</a>]"  ;
+								info = "("+ count + "/" + personActions.size() + ")" + " Exporting stopped on sending name for [ "+ personInfo + "] on server  :  \n[Un autre patient possède le même identifiant sur le serveur." +
+										"Click here to <a class=\"button\" href=\"/openmrs/module/serverDataTransfer/transfer.form?identifier=" +
+										patient.getPatientIdentifier().getIdentifier() + "\">Importer les informations du patients</a>]"  ;
 								break;
 							}
 						}
@@ -435,10 +444,11 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 						if (person.getVoided()) {
 							payload = deleteData(url, user, pass, restLink.toString(), personAction.getPersonUuid());
+//							payload = resource.remove(restLink.toString() + "/" + personAction.getPersonUuid());
 
 							if (payload.contains("error")) {
 								// System.out.println("Payload person for [" + personAction.getPersonUuid() + "] " + Action.DELETE.name() + " : " + payload);
-								info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on voiding info for [ "+ personInfo + "] in server  : ";
+								info = "("+ count + "/" + personActions.size() + ")" + " Exporting stopped on voiding info for [ "+ personInfo + "] in server  : ";
 								canContinue = false;
 								break;
 							}
@@ -449,7 +459,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 							payload = postData(url, user, pass, personLink, Tools.objectToString(new PersonResourceUpdate().setPerson(person)));
 							if (payload.contains("error")) {
 								// System.out.println("Payload person [" + personAction.getPersonUuid() + "] for " + Action.UPDATE.name() + " : " + payload);
-								info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending [ "+ personInfo + "] on server  : ";
+								info = "("+ count + "/" + personActions.size() + ")" + " Exporting stopped on sending [ "+ personInfo + "] on server  : ";
 								canContinue = false;
 							}
 
@@ -462,11 +472,11 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 									}
 									// System.out.println("Name link : " + nameLink);
 									payload = postData(url, user, pass, nameLink, Tools.objectToString(new NameResource().setPersonName(personName)));
-									// System.out.println("Exporting person to save or update name with identifier : " + patient.getPatientIdentifier());
+									// System.out.println(" Exporting person to save or update name with identifier : " + patient.getPatientIdentifier());
 
 									if (payload.contains("error")) {
 										// System.out.println("Payload name for " + Action.UPDATE.name() + " : " + payload);
-										info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending name for [ "+ personInfo + "] on server  : ";
+										info = "("+ count + "/" + personActions.size() + ")" + " Exporting stopped on sending name for [ "+ personInfo + "] on server  : ";
 										canContinue = false;
 										break;
 									}
@@ -477,7 +487,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 							if (canContinue) {
 								for (PersonAddress personAddress : person.getAddresses()) {
 									String addressLink = personLink + "/address";
-									// System.out.println("Exporting person to save or update address with identifier : " + patient.getPatientIdentifier());
+									// System.out.println(" Exporting person to save or update address with identifier : " + patient.getPatientIdentifier());
 
 									if (!getResource(url, user, pass, addressLink, personAddress.getUuid()).contains("error")) {
 										addressLink += "/" + personAddress.getUuid();
@@ -487,7 +497,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 									}
 									if (payload.contains("error")) {
 										System.out.println("Payload address for [" + personAddress.getUuid() + "] : " + payload);
-										info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending address for [ "+ personInfo + "] in server  : ";
+										info = "("+ count + "/" + personActions.size() + ")" + " Exporting stopped on sending address for [ "+ personInfo + "] in server  : ";
 										canContinue = false;
 										break;
 									}
@@ -496,7 +506,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 							}
 							if (canContinue) {
 								for (PersonAttribute personAttribute : person.getAttributes()) {
-									// System.out.println("Exporting person to save or update attribute with identifier : " + patient.getPatientIdentifier());
+									// System.out.println(" Exporting person to save or update attribute with identifier : " + patient.getPatientIdentifier());
 
 									String attributeLink = personLink + "/attribute";
 									if (!getResource(url, user, pass, attributeLink, personAttribute.getUuid()).contains("error")) {
@@ -509,7 +519,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 
 									if (payload.contains("error")) {
 										System.out.println("Payload attribute for [" + personAttribute.getUuid() + "] : " + payload);
-										info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending attribute for [ "+ personInfo + "] on server  : ";
+										info = "("+ count + "/" + personActions.size() + ")" + " Exporting stopped on sending attribute for [ "+ personInfo + "] on server  : ";
 										canContinue = false;
 										break;
 									}
@@ -526,7 +536,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 									payload = postData(url, user, pass, idLink, Tools.objectToString(new IdentifierResource().setIdentifier(identifier)));
 
 									if (payload.contains("error")) {
-										info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on updating patient with identifier [ " + patient.getPatientIdentifier() + "] on server  : ";
+										info = "("+ count + "/" + personActions.size() + ")" + " Exporting stopped on updating patient with identifier [ " + patient.getPatientIdentifier() + "] on server  : ";
 										canContinue = false;
 										break;
 									}
@@ -540,9 +550,9 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 //						System.out.println("--------------------------PATIENT CREATE--------------------------");
 							restLink = new StringBuilder(endPoint + "/patient");
 							payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new PatientResource().setPatient(patient)));
-							// System.out.println("Exporting person to save peron with identifier : " + patient.getPatientIdentifier());
+							// System.out.println(" Exporting person to save peron with identifier : " + patient.getPatientIdentifier());
 							if (payload.contains("error")) {
-								info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person ["+ personInfo + "] in server : ";
+								info = "("+ count + "/" + personActions.size() + ")" + " Exporting stopped on sending person ["+ personInfo + "] in server : ";
 								// System.out.println(Json.prettyPrint(Json.toJson(patient)));
 								canContinue = false;
 								break;
@@ -552,7 +562,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 								String addressLink = endPoint + "/person/" + person.getUuid() + "/address";
 								payload = postData(url, user, pass, addressLink, Tools.objectToString(new AddressResource().setPersonAddress(person.getPersonAddress())));
 								if (payload.contains("error")) {
-									info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person address ["+ personInfo + "] in server : ";
+									info = "("+ count + "/" + personActions.size() + ")" + " Exporting stopped on sending person address ["+ personInfo + "] in server : ";
 									canContinue = false;
 									break;
 								}
@@ -563,7 +573,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 								for (PersonAttribute personAttribute : person.getAttributes()) {
 									payload = postData(url, user, pass, addressLink, Tools.objectToString(new AttributeResource().setPersonAttribute(personAttribute)));
 									if (payload.contains("error")) {
-										info = "("+ count + "/" + personActions.size() + ")" + "Exporting stopped on sending person attribute [" + personInfo + "] in server : ";
+										info = "("+ count + "/" + personActions.size() + ")" + " Exporting stopped on sending person attribute [" + personInfo + "] in server : ";
 										canContinue = false;
 										break;
 									}
@@ -593,7 +603,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 							if (encounter.getVoided()) {
 								payload = deleteData(url, user, pass, restLink.toString(), encounterAction.getEncounterUuid());
 								if (payload.contains("error")) {
-									info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on deleting encounter [" + encounter .getEncounterType().getName()
+									info = "("+ count + "/" + encounterActions.size() + ")" + " Exporting stopped on deleting encounter [" + encounter .getEncounterType().getName()
 											+ "] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
 											+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
 									canContinue = false;
@@ -603,7 +613,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 								restLink.append("/").append(encounterAction.getEncounterUuid());
 								payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new EncounterResource().setEncounter(encounter)));
 								if (payload.contains("error")) {
-									info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on updating encounter [" + encounter .getEncounterType().getName()
+									info = "("+ count + "/" + encounterActions.size() + ")" + " Exporting stopped on updating encounter [" + encounter .getEncounterType().getName()
 											+ "] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
 											+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
 									canContinue = false;
@@ -614,7 +624,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 							if (!encounter.getVoided()) {
 								payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(new EncounterResource().setEncounter(encounter)));
 								if (payload.contains("error")) {
-									info = "("+ count + "/" + encounterActions.size() + ")" + "Exporting stopped on saving encounter [" + encounter.getEncounterType().getName() +
+									info = "("+ count + "/" + encounterActions.size() + ")" + " Exporting stopped on saving encounter [" + encounter.getEncounterType().getName() +
 											"] on [" + encounter.getEncounterDatetime() + "]  for patient with identifier [ "
 											+ encounter.getPatient().getPatientIdentifier() + "] on server  : ";
 									canContinue = false;
@@ -647,7 +657,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 										payload = deleteData(url, user, pass, restLink.toString(), obs.getUuid());
 										if (payload.contains("error")) {
 //								System.out.println("Payload obs for " + serverAction + " : " + payload);
-											info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on sending obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
+											info = "("+ count + "/" + obsActions.size() + ")" + " Exporting stopped on sending obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
 											canContinue = false;
 											break;
 										}
@@ -655,7 +665,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 										restLink.append("/").append(obsAction.getObs());
 										payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(obsResource));
 										if (payload.contains("error")) {
-											info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on updating obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
+											info = "("+ count + "/" + obsActions.size() + ")" + " Exporting stopped on updating obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
 											canContinue = false;
 											break;
 										}
@@ -664,7 +674,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 									if (!obs.getVoided()) {
 										payload = postData(url, user, pass, restLink.toString(), Tools.objectToString(obsResource));
 										if (payload.contains("error")) {
-											info = "("+ count + "/" + obsActions.size() + ")" + "Exporting stopped on saving obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
+											info = "("+ count + "/" + obsActions.size() + ")" + " Exporting stopped on saving obs [" + obs.getObsDatetime().toString() + "] on [" + obs.getConcept().getName(Locale.FRENCH).getName() + "]  for patient with name [ " + obs.getPerson().getPersonName() + "] on server  : ";
 											canContinue = false;
 											break;
 										}
@@ -702,14 +712,15 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 				message = info;
 
 				if (!payload.isEmpty()) {
+					GetterAndSetter gs = new GetterAndSetter();
 					if (resourceImported.equals("obs")) {
 						ObsError error = Tools.stringToExportObsError(payload);
 						if (error.getError().getMessage().equals("Invalid Submission")) {
 							ObsFieldError obsFieldError = error.getError().getFieldErrors();
 							Field[] fields = obsFieldError.getClass().getDeclaredFields();
 							for (Field f : fields) {
-								List<ErrorMessage> errorMessages = (List<ErrorMessage>) f.get(obsFieldError);
-								if (errorMessages.size() != 0) {
+								List<ErrorMessage> errorMessages = (List<ErrorMessage>) gs.callGetter(obsFieldError, f.getName());
+								if (errorMessages != null && errorMessages.size() != 0) {
 									String fieldErrors = "<h3>field " + f.getName() + "</h3><ul>";
 									for (ErrorMessage err : errorMessages) {
 										fieldErrors += "<li>" + err.getMessage() + "</li>";
@@ -724,8 +735,8 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 							EncounterFieldError encounterFieldError = error.getError().getFieldErrors();
 							Field[] fields = encounterFieldError.getClass().getDeclaredFields();
 							for (Field f : fields) {
-								List<ErrorMessage> errorMessages = (List<ErrorMessage>) f.get(encounterFieldError);
-								if (errorMessages.size() != 0) {
+								List<ErrorMessage> errorMessages = (List<ErrorMessage>) gs.callGetter(encounterFieldError, f.getName());
+								if (errorMessages != null && errorMessages.size() != 0) {
 									String fieldErrors = "<h3>field " + f.getName() + "</h3><ul>";
 									for (ErrorMessage err : errorMessages) {
 										fieldErrors += "<li>" + err.getMessage() + "</li>";
@@ -740,8 +751,8 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 							PatientFieldError patientFieldError = error.getError().getFieldErrors();
 							Field[] fields = patientFieldError.getClass().getDeclaredFields();
 							for (Field f : fields) {
-								List<ErrorMessage> errorMessages = (List<ErrorMessage>) f.get(patientFieldError);
-								if (errorMessages.size() != 0) {
+								List<ErrorMessage> errorMessages = (List<ErrorMessage>) gs.callGetter(patientFieldError, f.getName());
+								if (errorMessages != null && errorMessages.size() != 0) {
 									String fieldErrors = "<h3>field " + f.getName() + "</h3><ul>";
 									for (ErrorMessage err : errorMessages) {
 										fieldErrors += "<li>" + err.getMessage() + "</li>";
@@ -749,6 +760,8 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 									message += fieldErrors + "<ul><hr>";
 								}
 							}
+						} else {
+							message += error.getError().getMessage();
 						}
 					}
 					ExportSummary responseError = Tools.stringToExportSummaryError(payload);
@@ -782,6 +795,8 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 			alert.setRecipients(recipients);
 			Context.getAlertService().createAlert(alert);
 		}
+//		resource.close();
+
 		return canContinue;
 	}
 
@@ -892,7 +907,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 //		if (testServerDetails(url, user, pass))
 //			return "{\"error\":{\"message\": \"Error de connexion au serveur\"}}";
 
-		HttpParams params = new BasicHttpParams();;
+		HttpParams params = new BasicHttpParams();
 //		params.setParameter("identifier", "4370/OP/09/00079");
 		try {
 			URL serverUrl = new URL(url);
@@ -1000,7 +1015,7 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 		}
 
 		final HttpParams httpParams = new BasicHttpParams();
-		HttpConnectionParams.setConnectionTimeout(httpParams, 2000);
+		HttpConnectionParams.setConnectionTimeout(httpParams, 4000);
 
 		HttpHost targetHost = new HttpHost(testURL.getHost(), testURL.getPort(), testURL.getProtocol());
 		DefaultHttpClient httpclient = new DefaultHttpClient(httpParams);
@@ -1076,6 +1091,16 @@ public class HibernateServerDataTransferDAO implements ServerDataTransferDAO {
 		}
 		else
 			return new ArrayList<PatientResult>();
+	}
+
+	@Override
+	public Patient findLocalPatientByIdentifier(String identifier) {
+		Patient patient = null;
+		PatientIdentifier patientIdentifier = (PatientIdentifier) sessionFactory.getCurrentSession().createQuery("FROM PatientIdentifier p WHERE p.identifier = '"+identifier+"' AND (p.voided = false AND p.patient.voided = false) AND p.preferred = true").uniqueResult();
+		if(patientIdentifier != null) {
+			patient = patientIdentifier.getPatient();
+		}
+		return patient;
 	}
 
 	@Override

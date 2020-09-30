@@ -17,12 +17,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
-import org.openmrs.Person;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.serverDataTransfer.Server;
 import org.openmrs.module.serverDataTransfer.ServerDataTransfer;
 import org.openmrs.module.serverDataTransfer.api.ServerDataTransferService;
-import org.openmrs.module.serverDataTransfer.forms.ServerFrom;
+import org.openmrs.module.serverDataTransfer.forms.ServerForm;
+import org.openmrs.module.serverDataTransfer.forms.ServerValidator;
 import org.openmrs.module.serverDataTransfer.utils.Tools;
 import org.openmrs.module.serverDataTransfer.utils.resourcesResult.EncounterResult;
 import org.openmrs.module.serverDataTransfer.utils.resourcesResult.IdentifierResult;
@@ -68,37 +68,41 @@ public class  ServerDataTransferManageController {
 		if (Context.isAuthenticated()) {
 			HttpSession session = request.getSession();
 
-			ServerFrom serverFrom = new ServerFrom();
+			ServerForm serverForm = new ServerForm();
 			if (serverId != null) {
-				serverFrom.setServer(getService().getOneServer(serverId));
+				serverForm.setServer(getService().getOneServer(serverId));
 			}
-			model.addAttribute("serverForm", serverFrom);
+			model.addAttribute("serverForm", serverForm);
 		}
 		model.addAttribute("showLogin", Context.getAuthenticatedUser() == null);
 	}
 
 	@RequestMapping(value = "/module/serverDataTransfer/server.form", method = RequestMethod.POST)
-	public String onPostServer(HttpServletRequest request, ServerFrom serverForm, BindingResult result, ModelMap model) {
+	public String onPostServer(HttpServletRequest request, ServerForm serverForm, BindingResult result, ModelMap model) {
 		if (Context.isAuthenticated()) {
 			HttpSession session = request.getSession();
 
-			String mode = "save";
-			if (serverForm.getServerId() != null) {
-				mode = "edit";
-			}
-			serverForm.setConnected(true);
+			new ServerValidator().validate(serverForm, result);
 
-			if (!getService().testServerDetails(serverForm.getServerUrl(), serverForm.getUsername(), serverForm.getPassword())){
-				session.setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Impossible de se connecter au serveur ! Veuillez vérifiez vos informations de connexion ");
-			} else {
-				if (getService().createServer(serverForm.getServer()) != null) {
+			if (!result.hasErrors()) {
+				String mode = "save";
+				if (serverForm.getServerId() != null) {
+					mode = "edit";
+				}
+				serverForm.setConnected(true);
 
-					if (mode.equals("save")) {
-						session.setAttribute(WebConstants.OPENMRS_MSG_ATTR, "Serveur enregistré avec succès ");
-					} else {
-						session.setAttribute(WebConstants.OPENMRS_MSG_ATTR, "Serveur mis à jour avec succès ");
+				if (!getService().testServerDetails(serverForm.getServerUrl(), serverForm.getUsername(), serverForm.getPassword())) {
+					session.setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Impossible de se connecter au serveur ! Veuillez vérifiez vos informations de connexion ");
+				} else {
+					if (getService().createServer(serverForm.getServer()) != null) {
+
+						if (mode.equals("save")) {
+							session.setAttribute(WebConstants.OPENMRS_MSG_ATTR, "Serveur enregistré avec succès ");
+						} else {
+							session.setAttribute(WebConstants.OPENMRS_MSG_ATTR, "Serveur mis à jour avec succès ");
+						}
+						return "redirect:/module/serverDataTransfer/manage.form";
 					}
-					return "redirect:/module/serverDataTransfer/manage.form";
 				}
 			}
 		}
@@ -110,7 +114,7 @@ public class  ServerDataTransferManageController {
 	public String transfer(HttpServletRequest request, @RequestParam(defaultValue = "") Integer serverId,
 						 @RequestParam(required = false, defaultValue = "") String action,
 						 @RequestParam(required = false, defaultValue = "") String identifier,
-						 ModelMap model) throws IOException {
+						 ModelMap model) throws IOException, IllegalAccessException {
 		if(Context.isAuthenticated()) {
 			HttpSession session = request.getSession();
 
@@ -125,7 +129,7 @@ public class  ServerDataTransferManageController {
 					PatientResult retrievedPatient = patients.get(0);
 					Patient patient = updatePatient(retrievedPatient, identifier);
 					if (Context.getPatientService().savePatient(patient) != null) {
-						session.setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Patient ["+ identifier + "] importé avec succès !");
+						session.setAttribute(WebConstants.OPENMRS_ERROR_ATTR, "Informations du Patient ["+ identifier + "] importé avec succès !");
 					}
 				}
 			}
@@ -206,8 +210,13 @@ public class  ServerDataTransferManageController {
 							@RequestParam(required = false, defaultValue = "") String transferIn,
 							ModelMap model) throws IOException {
 		if (Context.isAuthenticated()) {
+			HttpSession session = request.getSession();
 			if (serverId != 0 && !identifier.isEmpty()) {
 				Server server = getService().getOneServer(serverId);
+
+				if (!getService().testServerDetails(server.getServerUrl(), server.getUsername(), server.getPassword())){
+					session.setAttribute(WebConstants.OPENMRS_ERROR_ATTR, server.getServerName() + " n'est pas disponible. Veuillez vérifier les paramètres de connexion ou votre installation réseau !");
+				}
 
 				String patientInfo = "Ce patient n'existe pas sur le serveur : " + server.getServerName();
 
@@ -215,18 +224,20 @@ public class  ServerDataTransferManageController {
 				if (patients.size() != 0) {
 
 					PatientResult retrievedPatient = patients.get(0);
-
 					boolean canTransferIn = false;
 
 					if (!transferIn.isEmpty()) {
-						getPatient(retrievedPatient);
+						// getPatient(retrievedPatient);
 						Patient patient = getPatient(retrievedPatient);
 						Context.getPatientService().savePatient(patient);
+						session.setAttribute(WebConstants.OPENMRS_MSG_ATTR, "Le patient est transféré sur votre site. Veuillez renseigner sa fiche initial puis les autres informations !");
 
 						return "redirect:/patientDashboard.form?patientId=" + patient.getPatientId();
 					}
 					EncounterResult latestAdmissionInfo = getService().getLatestAdmission(retrievedPatient.getUuid(), getService().getOneServer(serverId));
 					EncounterResult latestOutOfCareInfo = getService().getLatestOutFromCare(retrievedPatient.getUuid(), getService().getOneServer(serverId));
+					String currentLocation = Context.getAdministrationService().getGlobalProperty("default_location");
+					String patientLocation = latestAdmissionInfo.getLocation().getDisplay();
 
 					if (latestOutOfCareInfo.getEncounterDatetime() != null) {
 						if (latestAdmissionInfo.getEncounterDatetime().before(latestOutOfCareInfo.getEncounterDatetime())) {
@@ -236,20 +247,28 @@ public class  ServerDataTransferManageController {
 									break;
 								}
 								if (obsResult.getDisplay().contains("Patient transféré: true")){
-									patientInfo = "Le patient est transférés de puis le site d'origine depuis le " + Tools.formatDateToString(latestOutOfCareInfo.getEncounterDatetime(), Tools.DATE_FORMAT_DD_MM_YYYY) ;
+									patientInfo = "Le patient est transféré de son site d'origine depuis le " + Tools.formatDateToString(latestOutOfCareInfo.getEncounterDatetime(), Tools.DATE_FORMAT_DD_MM_YYYY) ;
 									break;
 								}
 							}
 						}
 					} else {
-						String currentLocation = Context.getAdministrationService().getGlobalProperty("default_location");
-						String patientLocation = latestAdmissionInfo.getLocation().getDisplay();
-
 						if (currentLocation.equals(patientLocation))
-							patientInfo = "Le patient est Pris en charge sur votre site";
+							patientInfo = "Le patient est pris en charge sur votre site";
 						else {
-							patientInfo = "Le patient est Pris en charge sur le site : " + patientLocation;
-							canTransferIn = true;
+							patientInfo = "Le patient est pris en charge sur le site : " + patientLocation;
+						}
+					}
+
+					if (!patientInfo.contains("décédé")) {
+						if (!currentLocation.equals(patientLocation)) {
+							Patient patient = getService().findLocalPatientByIdentifier(identifier);
+							if (patient != null) {
+								patientInfo += ". Déjà sur votre site. <a href=\"/openmrs/patientDashboard.form?patientId=" + patient.getId() +"\">Voir le patient</a>";
+								canTransferIn = false;
+							} else {
+								canTransferIn = true;
+							}
 						}
 					}
 
@@ -275,11 +294,12 @@ public class  ServerDataTransferManageController {
 					model.addAttribute("currentServer", server);
 					model.addAttribute("obsResults", obsResults);
 					model.addAttribute("canTransferIn", canTransferIn);
-					model.addAttribute("patientInfo", patientInfo);
 				}
+				model.addAttribute("patientInfo", patientInfo);
 			}
 
 			model.addAttribute("currentIdentifier", identifier);
+			model.addAttribute("serverId", serverId);
 			model.addAttribute("servers", getService().getAllServer());
 		}
 		model.addAttribute("showLogin", Context.getAuthenticatedUser() == null);

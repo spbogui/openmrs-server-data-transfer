@@ -141,21 +141,21 @@ public class ObsResource implements Serializable {
         this.uuid = uuid;
     }
 
-    public ObsResource setObs(Obs obs) throws JsonProcessingException {
+    public ObsResource setObs(Obs obs) {
         setPerson(obs.getPerson().getUuid());
         setObsDatetime(Tools.formatDateToString(obs.getObsDatetime(), Tools.DATE_FORMAT_YYYY_MM_DD_H_M_SZ));
         setConcept(obs.getConcept().getUuid());
         setLocation(obs.getLocation().getUuid());
 
-        if (obs.getOrder() != null)
+        if (obs.getOrder() != null) {
             setOrder(obs.getOrder().getUuid());
-
-        if (obs.getEncounter() != null)
+        }
+        if (obs.getEncounter() != null) {
             setEncounter(obs.getEncounter().getUuid());
-
-        if (obs.getAccessionNumber() != null)
+        }
+        if (obs.getAccessionNumber() != null) {
             setAccessionNumber(obs.getAccessionNumber());
-
+        }
         if (obs.getGroupMembers().isEmpty()) {
             Set<String> orders = new java.util.HashSet<String>(Collections.<String>emptySet());
             for (Obs o : obs.getGroupMembers()) {
@@ -174,23 +174,17 @@ public class ObsResource implements Serializable {
 
 //        System.out.println("-------------------------------------------------------------------------");
         if (obs.getValueBoolean() != null){
-//            System.out.println(obs.getValueBoolean().toString());
             setValue(obs.getValueBoolean().toString());
         }
         else if (obs.getValueCoded() != null) {
-//            System.out.println(obs.getValueCoded().getUuid());
             setValue(obs.getValueCoded().getUuid());
         } else if (obs.getValueNumeric() != null) {
-//            System.out.println(obs.getValueNumeric());
             setValue(obs.getValueNumeric().toString());
         } else if (obs.getValueText() != null) {
-//            System.out.println(obs.getValueText());
-            setValue(obs.getValueText().toString());
+            setValue(obs.getValueText());
         } else if (obs.getValueDatetime() != null) {
-//            System.out.println(Tools.formatDateToString(obs.getValueDatetime(), Tools.DATE_FORMAT_YYYY_MM_DD_H_M_S));
             setValue(Tools.formatDateToString(obs.getValueDatetime(), Tools.DATE_FORMAT_YYYY_MM_DD_H_M_S));
         } else if (obs.getValueDate() != null) {
-//            System.out.println(Tools.formatDateToString(obs.getValueDate(), Tools.DATE_FORMAT_YYYY_MM_DD_H_M_S));
             setValue(Tools.formatDateToString(obs.getValueDate(), Tools.DATE_FORMAT_YYYY_MM_DD_H_M_S));
         }
         // System.out.println("-------------------------------------------------------------------------");

@@ -59,7 +59,7 @@ public interface ServerDataTransferService extends OpenmrsService {
 	List<ServerDataTransfer> getAllServerDataTransferredByServer(Integer serverId);
 	ServerDataTransfer getOneServerData(Integer serverDataId);
 
-	boolean transferData(Server server, String endPoint, ServerDataTransfer data) throws IOException;
+	boolean transferData(Server server, String endPoint, ServerDataTransfer data) throws IOException, IllegalAccessException;
 
 	String postDataToServer(Server server, String endPoint, DataTransferResourceModel data);
 	String postData(String url, String username, String password, String resource, String data);
@@ -74,6 +74,7 @@ public interface ServerDataTransferService extends OpenmrsService {
 	List<Patient> getPatientWithoutGender();
 
 	List<PatientResult> findPatientOnServer(String identifier, Server server) throws IOException;
+	Patient findLocalPatientByIdentifier(String identifier);
 	EncounterResult getLatestAdmission(String patientUuid, Server server) throws IOException;
 	EncounterResult getLatestOutFromCare(String patientUuid, Server server) throws IOException;
 	List<ServerDataTransfer> getAllServerDataSendingByServer();

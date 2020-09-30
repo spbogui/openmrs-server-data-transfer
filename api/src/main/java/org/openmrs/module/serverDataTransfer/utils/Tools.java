@@ -23,6 +23,10 @@ public class Tools {
     public static String DATE_FORMAT_YYYY_MM_DD_H_M_SZ = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     public static String DATE_FORMAT_DD_MM_YYYY = "dd/MM/yyyy";
 
+    public static String INVALID_MIDDLE_NAME = "MiddleName.invalid";
+    public static String INVALID_FAMILY_NAME = "FamilyName.invalid";
+    public static String INVALID_GIVEN_NAME = "GivenName.invalid";
+
     public static String WS_REST_V1 = "/ws/rest/v1";
 
     public static DataTransferResourceModel createObjectFromByte(byte[] yourBytes) {

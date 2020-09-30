@@ -13,6 +13,7 @@ public class PatientFieldError {
     private List<ErrorMessage> dead;
     private List<ErrorMessage> deathDate;
     private List<ErrorMessage> causeOfDeath;
+    private List<ErrorMessage> names;
     private List<ErrorMessage> familyName;
     private List<ErrorMessage> givenName;
     private List<ErrorMessage> middleName;
@@ -71,6 +72,14 @@ public class PatientFieldError {
 
     public void setCauseOfDeath(List<ErrorMessage> causeOfDeath) {
         this.causeOfDeath = causeOfDeath;
+    }
+
+    public List<ErrorMessage> getNames() {
+        return names;
+    }
+
+    public void setNames(List<ErrorMessage> names) {
+        this.names = names;
     }
 
     public List<ErrorMessage> getFamilyName() {

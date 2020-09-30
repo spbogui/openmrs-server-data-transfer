@@ -16,22 +16,22 @@
         <form:hidden path="connected"/>
         <table width="70%">
             <tr>
-                <td>Nom du server :</td>
+                <td>Nom du server <span class="required">*</span> : </td>
                 <td><form:input path="serverName" size="50"/></td>
                 <td><form:errors path="serverName" cssClass="error"/></td>
             </tr>
             <tr>
-                <td>URL :</td>
+                <td>URL <span class="required">*</span> :</td>
                 <td><form:input path="serverUrl" size="60"/></td>
                 <td><form:errors path="serverUrl" cssClass="error"/></td>
             </tr>
             <tr>
-                <td>Nom d'utilisateur :</td>
+                <td>Nom d'utilisateur <span class="required">*</span> :</td>
                 <td><form:input path="username"/></td>
                 <td><form:errors path="username" cssClass="error"/></td>
             </tr>
             <tr>
-                <td>Mot de passe :</td>
+                <td>Mot de passe <span class="required">*</span> :</td>
                 <td><form:password path="password"/></td>
                 <td><form:errors path="password" cssClass="error"/></td>
             </tr>

@@ -70,6 +70,7 @@ public interface ServerDataTransferDAO {
 	List<Patient> getPatientWithoutGender();
 
 	List<PatientResult> findPatientOnServer(String identifier, Server server) throws IOException;
+	Patient findLocalPatientByIdentifier(String identifier);
 	EncounterResult getLatestAdmission(String patientUuid, Server server) throws IOException;
 	EncounterResult getLatestOutFromCare(String patientUuid, Server server) throws IOException;
 	List<ServerDataTransfer> getAllServerDataSendingByServer();
